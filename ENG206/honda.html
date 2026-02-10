@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HONDA</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://kit.fontawesome.com/5f4ff62a03.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div class="wrapper">
+    <h1>NPRA MASTER SCHEDULE</h1>
+
+    <!-- Add Row Button -->
+    <button id="addRowBtn">➕ Add ITEMS</button>
+
+    <!-- Search and Export/Import Controls -->
+    <div style="margin: 10px 0;">
+      <input type="text" id="searchInput" placeholder="Search Product">
+      <button id="searchBtn">Search</button>
+      <button id="resetBtn">Reset</button>
+      <div class="controls">
+      <button id="exportData">💾 Export Table</button>
+      <button id="importBtn">📂 Import Table</button>
+  <input type="file" id="importData" style="display:none">
+   </div>
+
+    </div>
+
+    <!-- Date Filter -->
+    <div style="margin: 10px 0;">
+      <label>From: <input type="date" id="dateFrom"></label>
+      <label>To: <input type="date" id="dateTo"></label>
+      <button id="dateSearchBtn">Filter by Date</button>
+      <button id="dateResetBtn">Reset</button>
+    </div>
+
+    <!-- Table -->
+    <table id="mainTable">
+      <thead>
+        <tr>
+          <th class="w-item">ITEM No.</th>
+          <th class="w-date">NPRA DATE</th>
+          <th class="w-line">LINE / EVENT NAME</th>
+          <th class="w-process">PROCESS</th>
+          <th class="w-product">PRODUCT</th>
+          <th class="w-failure">POTENTIAL FAILURE MODE</th>
+          <th class="w-cause">POTENTIAL CAUSE OF FAILURE</th>
+          <th colspan="2" class="w-counter">COUNTERMEASURE</th>
+          <th class="w-pic">PIC</th>
+          <th class="w-target">TARGET DATE</th>
+          <th class="w-status">STATUS</th>
+          <th class="w-recovery">RECOVERY DATE</th>
+        </tr>
+
+      </thead>
+      <tbody>
+        <!-- Dynamic rows will be inserted here -->
+      </tbody>
+    </table>
+
+    <!-- Bottom Buttons -->
+    <div class="block-controls">
+      <button id="deleteRowBtn">Delete this Row</button>
+      <button id="clearDataBtn">Clear Saved Data</button>
+    </div>
+
+    <td class="percentage-cell"></td>
+    <td class="date-cell"></td>
+    
+
+
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+<footer class="site-footer">
+  ©ME Final Process-FMEA
+</footer>
+</html>

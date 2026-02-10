@@ -1,0 +1,610 @@
+body {
+  font-family: calibri;
+  padding: 20px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
+}
+
+th, td {
+  border: 1px solid black;
+  padding: 5px;
+}
+
+th {
+  background-color: #f9f9f9;
+}
+
+
+#addRowBtn {
+  margin-bottom: 15px;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  background: #2ecc71;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+#addRowBtn:hover {
+  background: #27ae60;
+}
+
+.add-event-btn-container {
+  margin: 5px 0 15px 0;
+  text-align: left;
+}
+
+
+
+.floating-modal {
+  position: absolute;
+  background: white;
+  border: 1px solid #333;
+  padding: 10px;
+  z-index: 1000;
+  box-shadow: 0px 4px 6px rgba(0,0,0,0.2);
+}
+.floating-modal button { margin: 2px; }
+
+#deleteRowBtn {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  background: #2ecc71;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+#deleteRowBtn:hover {
+  background: #27ae60;
+}
+
+#row1 {
+  background-color: #27ae60;
+}
+
+/* --- Search Bar Styling --- */
+#searchInput {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+#searchInput:focus {
+  border-color: #0077cc;
+  box-shadow: 0 0 4px rgba(0, 119, 204, 0.4);
+}
+
+#searchBtn,
+#resetBtn {
+  padding: 6px 12px;
+  margin-left: 4px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+#searchBtn {
+  background-color: #0077cc;
+  color: white;
+}
+
+#searchBtn:hover {
+  background-color: #005fa3;
+  transform: scale(1.05);
+}
+
+#resetBtn {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+#resetBtn:hover {
+  background-color: #c9c9c9;
+  transform: scale(1.05);
+}
+
+/* Optional: Wrap div */
+div[style*="margin: 10px 0;"] {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#dateFrom,
+#dateTo {
+  padding: 4px 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+}
+
+#dateFrom:focus,
+#dateTo:focus {
+  border-color: #0077cc;
+  box-shadow: 0 0 4px rgba(0, 119, 204, 0.4);
+}
+
+#dateSearchBtn,
+#dateResetBtn {
+  padding: 6px 12px;
+  margin-left: 4px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+#dateSearchBtn {
+  background-color: #28a745;
+  color: white;
+}
+
+#dateSearchBtn:hover {
+  background-color: #1e7e34;
+  transform: scale(1.05);
+}
+
+#dateResetBtn {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+#dateResetBtn:hover {
+  background-color: #c9c9c9;
+  transform: scale(1.05);
+}
+.site-footer {
+  text-align: center;
+  padding: 12px 0;
+  background-color: #f1f1f1; /* light gray background */
+  color: #333;               /* dark text */
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  position: fixed;           /* stays at bottom */
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+}
+/* Hide footer when printing */
+@media print {
+  .site-footer {
+    display: none;
+  }
+}
+
+
+#clearDataBtn {
+  background-color: #e74c3c; /* red */
+  color: white;
+  border: none;
+  padding: 7.5px 12px;
+  margin-left: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background-color 0.2s ease;
+}
+
+#clearDataBtn:hover {
+  background-color: #c0392b; /* darker red on hover */
+}
+/* Controls container */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* space between buttons */
+  margin: 15px 0;
+  align-items: center;
+}
+
+/* Buttons style */
+.controls button {
+  background-color: #4CAF50; /* green */
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.controls button:hover {
+  background-color: #45a049; /* darker green on hover */
+}
+
+#addRowBtn {
+  position: sticky;
+  top: 0;
+  background-color: #4CAF50;
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  z-index: 999;
+  border-bottom: 1px solid #ddd; /* Optional: adds separation */
+}
+/* Highlight selected block */
+.selected-block {
+  background-color: #fff3cd !important; /* light yellow */
+  border: 2px solid #ffc107 !important; /* golden border */
+}
+
+/* Block control buttons */
+.block-controls {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+#deleteBlockBtn {
+  background-color: #e74c3c; /* red */
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+#deleteBlockBtn:hover {
+  background-color: #c0392b;
+}
+
+#clearDataBtn {
+  background-color: #6c757d; /* gray */
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+#clearDataBtn:hover {
+  background-color: #5a6268;
+}
+.selected-block td {
+  background-color: lightyellow !important;
+}
+.popup-notification {
+  font-size: 12px;
+  background-color: red;
+  padding: 5px;
+  border-radius: 5px;
+  color: white;
+  position: absolute;
+  z-index: 1000;
+  font-weight: bold;
+}
+
+
+
+
+
+/* ---------------- Floating Modal Container ---------------- */
+.floating-modal {
+  position: absolute;
+  background: #808080; /* Black background */
+  color: #fff;      /* White text */
+  border: 2px solid #fff;
+  border-radius: 12px;
+  padding: 15px 20px;
+  box-shadow: 0 4px 20px #808080, 0 0 10px rgba(255, 255, 255, 0.3);
+  z-index: 1000;
+  min-width: 200px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Pop-in effect */
+.floating-modal.show {
+  transform: scale(1);
+  opacity: 1;
+}
+.floating-modal.hide {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
+/* ---------------- Buttons in Modal ---------------- */
+.floating-modal button {
+  display: block;
+  width: 100%;
+  background: #808080;      /* Black button */
+  color: #fff;           /* White font */
+  border: 1px solid #fff;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 6px 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px #808080;
+}
+
+/* Hover effect */
+.floating-modal button:hover {
+  background: #fff;
+  color: #000;
+  box-shadow: 0 4px 12px #808080;
+  transform: translateY(-2px);
+}
+
+/* Active click effect */
+.floating-modal button:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 6px #808080;
+}
+
+/* Special styling for Delete button */
+.floating-modal #clearStatus {
+  background: #808080;
+  color: #fff;
+  border: 1px solid #fff;
+}
+.floating-modal #clearStatus:hover {
+  background: #fff;
+  color: #808080;
+}
+
+/* Optional: Cancel button styling */
+.floating-modal #cancelStatus {
+  background: #808080;
+  color: #fff;
+  border: 1px solid #fff;
+}
+.floating-modal #cancelStatus:hover {
+  background: #fff;
+  color: #808080;
+}
+
+/* ---------------- Popup Notification Styling ---------------- */
+.popup-notification {
+  position: absolute;
+  background: #808080;      /* Black background */
+  color: #fff;           /* White text */
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px #808080, 0 0 6px rgba(255,255,255,0.3);
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.95;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+
+
+.vertical-text {
+  writing-mode: vertical-rl; /* Rotate text vertically from bottom to top */
+  transform: rotate(180deg); /* Flip text so it reads top-down */
+  text-align: center;
+  vertical-align: middle;
+  padding: 5px;
+  font-weight: bold;
+}
+
+.editable-text {
+  width: 100%;
+  min-height: 32px;
+  padding: 2px 4px;
+  font-size: 14px;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.3;
+  background-color: transparent;
+  font-family: inherit;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.editable-text:focus {
+  background-color: #eef;
+}
+
+.editable-date {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  text-align: center;
+  outline: none;
+  cursor: pointer;
+}
+
+.editable-date:focus {
+  background-color: #eef;
+}
+
+/* Status dropdown styling */
+.status-select {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: #0077cc;
+  box-shadow: 0 0 4px rgba(0,119,204,0.4);
+}
+
+/* Row hover effect */
+#mainTable tbody tr:hover {
+  background-color: #f0f8ff; /* light blue highlight */
+}
+
+/* Vertical text adjustments */
+.vertical-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+  vertical-align: middle;
+  font-weight: bold;
+  padding: 5px;
+}
+.editable-text {
+  width: 100%;
+  min-height: 40px;        /* auto height for more text */
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  box-sizing: border-box;
+  resize: vertical;        /* allow user to resize vertically */
+  overflow-wrap: break-word;
+  white-space: pre-wrap;   /* preserve line breaks */
+  line-height: 1.3;
+  transition: all 0.2s ease;
+}
+
+.editable-text:focus {
+  border-color: #0077cc;
+  background-color: #eef;
+}
+
+.editable-text {
+  width: 100%;
+  min-height: 40px;        /* auto height for content */
+  padding: 4px 6px;        /* small padding inside cell */
+  font-size: 14px;
+  border: none;             /* remove borders */
+  outline: none;            /* remove focus outline */
+  resize: vertical;         /* allow vertical resize */
+  overflow-wrap: break-word;
+  white-space: pre-wrap;    /* wrap text and preserve line breaks */
+  line-height: 1.3;
+  background-color: transparent; /* blend with table background */
+  font-family: inherit;     /* same font as table */
+  box-sizing: border-box;
+}
+
+.editable-text:focus {
+  background-color: #eef;   /* subtle highlight when editing */
+}
+
+.editable-text {
+  width: 100%;
+  min-height: 40px;        /* auto height for content */
+  padding: 4px 6px;        /* small padding */
+  font-size: 14px;
+  border: none;             /* remove borders */
+  outline: none;            /* remove focus outline */
+  resize: vertical;         /* allow vertical resize */
+  overflow-wrap: break-word;
+  white-space: pre-wrap;    /* wrap text and preserve line breaks */
+  line-height: 1.3;
+  background-color: transparent; /* blend with table */
+  font-family: inherit;     /* match table font */
+  box-sizing: border-box;
+
+  /* center text horizontally & vertically */
+  display: flex;
+  justify-content: center;  /* horizontal center */
+  align-items: center;      /* vertical center */
+  text-align: center;       /* ensure text is centered */
+}
+
+.editable-text:focus {
+  background-color: #eef;   /* subtle highlight */
+}
+
+/* Disable hover effects on table cells and inputs */
+#mainTable tbody tr:hover,
+#mainTable tbody td:hover,
+.editable-text:hover {
+  background-color: transparent !important;
+}
+
+.status-select {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  /* Center text */
+  text-align: center;       /* For most browsers */
+  text-align-last: center;  /* For dropdown selected option in Firefox */
+}
+
+.status-select {
+  width: 100%;
+  height: 100%;
+  border: none;               /* remove border */
+  outline: none;              /* remove focus outline */
+  background: transparent;    /* blend with cell background */
+  font: inherit;              /* match table font */
+  cursor: pointer;
+  
+  /* Center text horizontally and vertically */
+  text-align: center;
+  text-align-last: center;    /* Firefox selected option */
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;                 /* remove extra padding */
+  box-sizing: border-box;
+}
+
+@media print {
+  body {
+    padding: 0;
+  }
+
+  button,
+  input,
+  .controls,
+  .block-controls,
+  .site-footer {
+    display: none !important;
+  }
+
+  table {
+    font-size: 11px;
+  }
+
+  th, td {
+    border: 1px solid black !important;
+    padding: 4px;
+  }
+
+  .status-select {
+    appearance: none;
+    border: none;
+    background: transparent;
+  }
+}

@@ -1,0 +1,75 @@
+* {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    margin: 0;
+    background: #f4f6f9;
+    padding: 20px;
+}
+
+.dashboard {
+    max-width: 1100px;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.maker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.maker-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.maker-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+}
+
+.maker-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #222;
+}
+
+.open-count {
+    margin-top: 12px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #d9534f; /* red for OPEN */
+}
+
+.status-label {
+    font-size: 13px;
+    color: #666;
+}
+
+.maker-card.active {
+    outline: 3px solid #007bff;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.status-row.open strong { color: #d9534f; }
+.status-row.close strong { color: #28a745; }
+.status-row.cancelled strong { color: #f0ad4e; }
+.status-row.rejected strong { color: #c82333; }
