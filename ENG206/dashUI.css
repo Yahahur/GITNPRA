@@ -44,6 +44,8 @@ h1 {
     font-size: 18px;
     font-weight: bold;
     color: #222;
+    text-align: center;
+    margin-bottom: 8px;
 }
 
 .open-count {
@@ -73,3 +75,58 @@ h1 {
 .status-row.close strong { color: #28a745; }
 .status-row.cancelled strong { color: #f0ad4e; }
 .status-row.rejected strong { color: #c82333; }
+
+.dashboard-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.dashboard-actions button {
+  border: none;
+  background: #0077cc;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.dashboard-actions button:hover {
+  background: #005fa3;
+}
+
+.summary-card {
+  border: 2px dashed #0077cc;
+}
+
+.summary-note {
+  text-align: center;
+  color: #444;
+  font-size: 13px;
+  margin: 8px 0 14px;
+}
+
+.summary-table-wrap {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.summary-table th,
+.summary-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.summary-table th {
+  background: #f1f5f9;
+}
