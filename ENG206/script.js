@@ -29,6 +29,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const importBtn = document.getElementById("importBtn");
   const importInput = document.getElementById("importData");
 
+  const statusFilterInputs = Array.from(document.querySelectorAll(".statusFilter"));
+  const statusFilterAllBtn = document.getElementById("statusFilterAllBtn");
+  const statusFilterResetBtn = document.getElementById("statusFilterResetBtn");
+
   let selectedBlock = null;
 
   const PIC_OPTIONS = [
@@ -133,6 +137,36 @@ document.addEventListener("DOMContentLoaded", () => {
     select.dataset.status = select.value;
   }
 
+  function updateStatusReasonUI(select) {
+    const td = select.closest("td");
+    if (!td) return;
+
+    const reason = (select.dataset.reason || "").trim();
+    if (["Cancelled", "Rejected"].includes(select.value) && reason) {
+      td.title = `${select.value} reason: ${reason}`;
+    } else if (["Cancelled", "Rejected"].includes(select.value)) {
+      td.title = `${select.value} reason: (not provided)`;
+    } else {
+      td.title = "";
+      select.dataset.reason = "";
+    }
+  }
+
+  function askReasonIfNeeded(select) {
+    if (!["Cancelled", "Rejected"].includes(select.value)) {
+      select.dataset.reason = "";
+      return;
+    }
+
+    const current = select.dataset.reason || "";
+    const entered = prompt(`Enter reason for ${select.value}:`, current);
+    if (entered === null) {
+      select.value = "Open";
+      select.dataset.reason = "";
+    } else {
+      select.dataset.reason = entered.trim();
+    }
+  }
 
   function isResolvedStatus(status) {
     return ["Close", "Cancelled", "Rejected"].includes(status);
@@ -213,6 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function syncSelectValues() {
     document.querySelectorAll(".status-select").forEach(select => {
       select.dataset.status = select.value;
+      select.dataset.reason = select.dataset.reason || "";
       [...select.options].forEach(opt => {
         opt.selected = opt.value === select.value;
       });
@@ -272,6 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".status-select").forEach(select => {
       hydrateStatusSelect(select);
       applyStatusLogic(select);
+      updateStatusReasonUI(select);
     });
 
     updateDateWarnings();
@@ -298,15 +334,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function getEnabledStatusFilters() {
+    const checked = statusFilterInputs
+      .filter(input => input.checked)
+      .map(input => input.value);
+    return new Set(checked);
+  }
+
+  function blockMatchesStatus(blockRows, enabledStatuses) {
+    if (enabledStatuses.size === 0) return false;
+
+    const statuses = blockRows.flatMap(row =>
+      Array.from(row.querySelectorAll(".status-select")).map(select => select.value)
+    );
+
+    if (statuses.length === 0) return true;
+    return statuses.some(status => enabledStatuses.has(status));
+  }
+
   function applyFilters() {
     const query = (searchInput.value || "").trim().toLowerCase();
     const fromDate = parseDateOnly(dateFrom.value);
     const toDate = parseDateOnly(dateTo.value);
+    const enabledStatuses = getEnabledStatusFilters();
 
     getBlocks().forEach(blockRows => {
       const matchesSearch = !query || blockText(blockRows).includes(query);
       const matchesDate = (!fromDate && !toDate) || blockInDateRange(blockRows, fromDate, toDate);
-      const visible = matchesSearch && matchesDate;
+      const matchesStatus = blockMatchesStatus(blockRows, enabledStatuses);
+      const visible = matchesSearch && matchesDate && matchesStatus;
 
       blockRows.forEach(row => {
         row.style.display = visible ? "" : "none";
@@ -450,10 +506,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target.classList.contains("status-select")) {
       const allowed = ["Open", "Close", "Cancelled", "Rejected", "—"];
       if (!allowed.includes(e.target.value)) e.target.value = "Open";
+
+      askReasonIfNeeded(e.target);
       e.target.dataset.status = e.target.value;
       applyStatusLogic(e.target);
+      updateStatusReasonUI(e.target);
       updateDateWarnings();
       saveTable();
+      applyFilters();
     }
 
     if (e.target.classList.contains("pic-select")) {
@@ -480,6 +540,24 @@ document.addEventListener("DOMContentLoaded", () => {
     applyFilters();
   });
 
+  statusFilterInputs.forEach(input => {
+    input.addEventListener("change", applyFilters);
+  });
+
+  statusFilterAllBtn?.addEventListener("click", () => {
+    statusFilterInputs.forEach(input => {
+      input.checked = true;
+    });
+    applyFilters();
+  });
+
+  statusFilterResetBtn?.addEventListener("click", () => {
+    statusFilterInputs.forEach(input => {
+      input.checked = true;
+    });
+    applyFilters();
+  });
+
   /* ================= DELETE BLOCK ================= */
   deleteRowBtn.addEventListener("click", () => {
     if (!selectedBlock) return alert("Enable block select, then click any row in the block first.");
@@ -500,11 +578,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= EXPORT / IMPORT ================= */
   exportBtn.onclick = () => {
-    const blob = new Blob([localStorage.getItem(STORAGE_KEY) || ""], { type: "application/json" });
+    const payload = {
+      maker: selectedMaker,
+      tableHtml: localStorage.getItem(STORAGE_KEY) || ""
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `${selectedMaker}_NPRA.json`;
     a.click();
+    URL.revokeObjectURL(a.href);
   };
 
   importBtn.onclick = () => importInput.click();
@@ -512,13 +595,33 @@ document.addEventListener("DOMContentLoaded", () => {
   importInput.onchange = e => {
     const file = e.target.files[0];
     if (!file) return;
+
     const r = new FileReader();
     r.onload = () => {
-      localStorage.setItem(STORAGE_KEY, r.result);
-      loadTable();
-      applyFilters();
+      try {
+        const raw = String(r.result || "");
+        let html = raw;
+
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === "string") {
+          html = parsed;
+        } else if (parsed && typeof parsed.tableHtml === "string") {
+          html = parsed.tableHtml;
+        }
+
+        localStorage.setItem(STORAGE_KEY, html);
+        loadTable();
+        applyFilters();
+        alert("Import successful.");
+      } catch {
+        localStorage.setItem(STORAGE_KEY, String(r.result || ""));
+        loadTable();
+        applyFilters();
+        alert("Import successful.");
+      }
     };
     r.readAsText(file);
+    e.target.value = "";
   };
 
   /* ================= CLEAR ================= */

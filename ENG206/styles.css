@@ -629,3 +629,24 @@ div[style*="margin: 10px 0;"] {
   text-align: center;
   font-size: 13px;
 }
+
+.status-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.status-filter-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#statusFilterAllBtn,
+#statusFilterResetBtn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
