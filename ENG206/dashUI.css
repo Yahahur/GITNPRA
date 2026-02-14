@@ -130,3 +130,19 @@ h1 {
 .summary-table th {
   background: #f1f5f9;
 }
+
+.event-search-panel {
+  margin-bottom: 24px;
+}
+
+.event-search-panel h3 {
+  text-align: center;
+  margin: 0 0 10px;
+}
+
+.dashboard-actions input,
+.dashboard-actions select {
+  padding: 7px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}

@@ -41,12 +41,22 @@ document.addEventListener("DOMContentLoaded", () => {
     "eed final assy", "Final ect", "md", "pd pc event", "mm and eq", "—"
   ];
 
+  const INCLUSION_OPTIONS = ["For Inclusion", "Not for Inclusion", "Pending", "—"];
+
   function createPicSelectHTML(selected = "—") {
     const options = PIC_OPTIONS.map(pic => {
       const selectedAttr = pic === selected ? " selected" : "";
       return `<option value="${pic}"${selectedAttr}>${pic}</option>`;
     }).join("");
     return `<select class="pic-select" data-pic="${selected}">${options}</select>`;
+  }
+
+  function createInclusionSelectHTML(selected = "—") {
+    const options = INCLUSION_OPTIONS.map(option => {
+      const selectedAttr = option === selected ? " selected" : "";
+      return `<option value="${option}"${selectedAttr}>${option}</option>`;
+    }).join("");
+    return `<select class="inclusion-select" data-inclusion="${selected}">${options}</select>`;
   }
 
   /* ================= UTIL ================= */
@@ -259,6 +269,13 @@ document.addEventListener("DOMContentLoaded", () => {
         opt.selected = opt.value === select.value;
       });
     });
+
+    document.querySelectorAll(".inclusion-select").forEach(select => {
+      select.dataset.inclusion = select.value;
+      [...select.options].forEach(opt => {
+        opt.selected = opt.value === select.value;
+      });
+    });
   }
 
   function normalizeAndHydratePicCells() {
@@ -291,6 +308,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function normalizeAndHydrateInclusionCells() {
+    document.querySelectorAll(".status-cell").forEach(statusCell => {
+      let inclusionCell = statusCell.nextElementSibling;
+      if (!inclusionCell || !inclusionCell.classList.contains("inclusion-cell")) {
+        inclusionCell = document.createElement("td");
+        inclusionCell.className = "inclusion-cell";
+        inclusionCell.innerHTML = createInclusionSelectHTML("—");
+        statusCell.insertAdjacentElement("afterend", inclusionCell);
+      }
+
+      const select = inclusionCell.querySelector(".inclusion-select");
+      if (!select) {
+        const raw = (inclusionCell.textContent || "").trim();
+        const selected = INCLUSION_OPTIONS.includes(raw) ? raw : "—";
+        inclusionCell.innerHTML = createInclusionSelectHTML(selected);
+      }
+
+      const inclusionSelect = inclusionCell.querySelector(".inclusion-select");
+      const saved = inclusionSelect.dataset.inclusion;
+      if (saved && INCLUSION_OPTIONS.includes(saved)) {
+        inclusionSelect.value = saved;
+      }
+      if (!INCLUSION_OPTIONS.includes(inclusionSelect.value)) {
+        inclusionSelect.value = "—";
+      }
+      inclusionSelect.dataset.inclusion = inclusionSelect.value;
+    });
+  }
+
   function saveTable() {
     syncSelectValues();
     localStorage.setItem(STORAGE_KEY, mainTableBody.innerHTML);
@@ -303,6 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tagDateCellTypes();
     normalizeAndHydratePicCells();
+    normalizeAndHydrateInclusionCells();
 
     document.querySelectorAll(".status-select").forEach(select => {
       hydrateStatusSelect(select);
@@ -404,6 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <option value="—">—</option>
       </select>`;
     const picHTML = createPicSelectHTML();
+    const inclusionHTML = createInclusionSelectHTML();
 
     for (let i = 0; i < 4; i++) {
       const tr = document.createElement("tr");
@@ -419,12 +467,14 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>—</td><td class="pic-cell">${picHTML}</td>
         <td class="date-cell target-date" data-raw="">—</td>
         <td class="status-cell">${statusHTML}</td>
+        <td class="inclusion-cell">${inclusionHTML}</td>
         <td class="date-cell recovery-date" data-raw="">—</td>
       ` : `
         ${i === 2 ? `<td rowspan="2" class="vertical-text">OUTFLOW</td>` : ""}
         <td>—</td><td class="pic-cell">${picHTML}</td>
         <td class="date-cell target-date" data-raw="">—</td>
         <td class="status-cell">${statusHTML}</td>
+        <td class="inclusion-cell">${inclusionHTML}</td>
         <td class="date-cell recovery-date" data-raw="">—</td>
       `;
       mainTableBody.appendChild(tr);
@@ -445,6 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
       td.classList.contains("vertical-text") ||
       td.classList.contains("status-cell") ||
       td.classList.contains("pic-cell") ||
+      td.classList.contains("inclusion-cell") ||
       td.querySelector("input") ||
       td.querySelector("select")
     ) return;
@@ -523,6 +574,14 @@ document.addEventListener("DOMContentLoaded", () => {
       e.target.dataset.pic = e.target.value;
       saveTable();
       applyFilters();
+    }
+
+    if (e.target.classList.contains("inclusion-select")) {
+      if (!INCLUSION_OPTIONS.includes(e.target.value)) {
+        e.target.value = "—";
+      }
+      e.target.dataset.inclusion = e.target.value;
+      saveTable();
     }
   });
 

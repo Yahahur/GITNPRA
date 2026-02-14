@@ -650,3 +650,11 @@ div[style*="margin: 10px 0;"] {
   border-radius: 4px;
   cursor: pointer;
 }
+
+.inclusion-select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 13px;
+}
