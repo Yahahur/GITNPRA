@@ -663,3 +663,12 @@ div[style*="margin: 10px 0;"] {
   padding: 6px 10px;
   border-radius: 4px;
 }
+
+.event-select,
+.include-select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 13px;
+}

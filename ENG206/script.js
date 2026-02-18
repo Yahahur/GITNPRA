@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const modelSelect = document.getElementById("modelSelect");
   const addModelBtn = document.getElementById("addModelBtn");
   const removeModelBtn = document.getElementById("removeModelBtn");
+  const eventSelect = document.getElementById("eventSelect");
+  const addEventBtn = document.getElementById("addEventBtn");
+  const removeEventBtn = document.getElementById("removeEventBtn");
   const goHomeBtn = document.getElementById("goHomeBtn");
 
   function getModelsKey(maker) {
@@ -27,6 +30,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function saveMakerModels(maker, models) {
     localStorage.setItem(getModelsKey(maker), JSON.stringify(models));
+  }
+
+  function getEventsKey(maker) {
+    return `NPRA_EVENTS_${maker}`;
+  }
+
+  function getMakerEvents(maker) {
+    const raw = localStorage.getItem(getEventsKey(maker));
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {}
+    return [];
+  }
+
+  function saveMakerEvents(maker, events) {
+    localStorage.setItem(getEventsKey(maker), JSON.stringify(events));
   }
 
   let currentModel = localStorage.getItem(`selectedModel_${selectedMaker}`) || getMakerModels(selectedMaker)[0] || "";
@@ -72,12 +93,32 @@ document.addEventListener("DOMContentLoaded", () => {
     "eed final assy", "Final ect", "md", "pd pc event", "mm and eq", "—"
   ];
 
+  const INCLUDE_OPTIONS = ["Include", "Not Include"];
+
   function createPicSelectHTML(selected = "—") {
     const options = PIC_OPTIONS.map(pic => {
       const selectedAttr = pic === selected ? " selected" : "";
       return `<option value="${pic}"${selectedAttr}>${pic}</option>`;
     }).join("");
     return `<select class="pic-select" data-pic="${selected}">${options}</select>`;
+  }
+
+  function createEventSelectHTML(selected = "—") {
+    const events = getMakerEvents(selectedMaker);
+    const base = events.length ? events : ["—"];
+    const options = base.map(event => {
+      const selectedAttr = event === selected ? " selected" : "";
+      return `<option value="${event}"${selectedAttr}>${event}</option>`;
+    }).join("");
+    return `<select class="event-select" data-event="${selected}">${options}</select>`;
+  }
+
+  function createIncludeSelectHTML(selected = "Include") {
+    const options = INCLUDE_OPTIONS.map(v => {
+      const selectedAttr = v === selected ? " selected" : "";
+      return `<option value="${v}"${selectedAttr}>${v}</option>`;
+    }).join("");
+    return `<select class="include-select" data-include="${selected}">${options}</select>`;
   }
 
   function renderModelOptions() {
@@ -126,6 +167,31 @@ document.addEventListener("DOMContentLoaded", () => {
     clearSelectedBlockUI();
     loadTable();
     applyFilters();
+  }
+
+  function renderEventOptions() {
+    if (!eventSelect) return;
+
+    const events = getMakerEvents(selectedMaker);
+    eventSelect.innerHTML = "";
+
+    if (!events.length) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "No event (add one)";
+      opt.selected = true;
+      eventSelect.appendChild(opt);
+      eventSelect.disabled = true;
+      return;
+    }
+
+    eventSelect.disabled = false;
+    events.forEach(event => {
+      const opt = document.createElement("option");
+      opt.value = event;
+      opt.textContent = event;
+      eventSelect.appendChild(opt);
+    });
   }
 
   /* ================= UTIL ================= */
@@ -338,6 +404,20 @@ document.addEventListener("DOMContentLoaded", () => {
         opt.selected = opt.value === select.value;
       });
     });
+
+    document.querySelectorAll(".event-select").forEach(select => {
+      select.dataset.event = select.value;
+      [...select.options].forEach(opt => {
+        opt.selected = opt.value === select.value;
+      });
+    });
+
+    document.querySelectorAll(".include-select").forEach(select => {
+      select.dataset.include = select.value;
+      [...select.options].forEach(opt => {
+        opt.selected = opt.value === select.value;
+      });
+    });
   }
 
   function normalizeAndHydratePicCells() {
@@ -370,6 +450,74 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+
+  function normalizeAndHydrateEventCells() {
+    const eventOptions = getMakerEvents(selectedMaker);
+    const blocks = getBlocks();
+
+    blocks.forEach(blockRows => {
+      const firstRow = blockRows[0];
+      if (!firstRow || firstRow.cells.length < 3) return;
+
+      const eventCell = firstRow.cells[2];
+      eventCell.classList.add("event-cell");
+
+      if (!eventCell.querySelector(".event-select")) {
+        const raw = (eventCell.textContent || "").trim();
+        const selected = eventOptions.includes(raw) ? raw : (eventOptions[0] || "");
+        eventCell.innerHTML = createEventSelectHTML(selected || "—");
+      }
+
+      const select = eventCell.querySelector(".event-select");
+      if (!select) return;
+
+      if (!eventOptions.length) {
+        select.innerHTML = '<option value="">No event</option>';
+        select.value = "";
+        select.disabled = true;
+      } else {
+        select.disabled = false;
+        const current = select.dataset.event || select.value || eventOptions[0];
+        select.innerHTML = eventOptions.map(event => {
+          const sel = event === current ? " selected" : "";
+          return `<option value="${event}"${sel}>${event}</option>`;
+        }).join("");
+        if (!eventOptions.includes(select.value)) {
+          select.value = eventOptions[0];
+        }
+      }
+
+      select.dataset.event = select.value;
+    });
+  }
+
+  function normalizeAndHydrateIncludeCells() {
+    document.querySelectorAll(".status-cell").forEach(statusCell => {
+      const targetDateCell = statusCell.previousElementSibling;
+      if (!targetDateCell || !targetDateCell.classList.contains("date-cell")) return;
+
+      let includeCell = targetDateCell.previousElementSibling;
+      if (!includeCell || !includeCell.classList.contains("include-cell")) {
+        includeCell = document.createElement("td");
+        includeCell.className = "include-cell";
+        targetDateCell.parentNode.insertBefore(includeCell, targetDateCell);
+      }
+
+      if (!includeCell.querySelector(".include-select")) {
+        const raw = (includeCell.textContent || "").trim();
+        const selected = INCLUDE_OPTIONS.includes(raw) ? raw : "Include";
+        includeCell.innerHTML = createIncludeSelectHTML(selected);
+      }
+
+      const select = includeCell.querySelector(".include-select");
+      if (!select) return;
+      if (!INCLUDE_OPTIONS.includes(select.value)) {
+        select.value = "Include";
+      }
+      select.dataset.include = select.value;
+    });
+  }
+
   function saveTable() {
     syncSelectValues();
     if (!STORAGE_KEY) return;
@@ -391,6 +539,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tagDateCellTypes();
     normalizeAndHydratePicCells();
+    normalizeAndHydrateEventCells();
+    normalizeAndHydrateIncludeCells();
 
     document.querySelectorAll(".status-select").forEach(select => {
       hydrateStatusSelect(select);
@@ -479,10 +629,12 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= ADD BLOCK ================= */
   addRowBtn.addEventListener("click", () => {
     if (!STORAGE_KEY) return alert("Add/select a model first.");
-    const line = prompt("Enter Line / Event:");
+    const selectedEvent = eventSelect?.value || "";
+    if (!selectedEvent) return alert("Add/select an event first.");
+
     const process = prompt("Enter Process:");
     const product = prompt("Enter Product:");
-    if (!line || !process || !product) return;
+    if (!process || !product) return;
 
     const statusHTML = `
       <select class="status-select">
@@ -493,25 +645,28 @@ document.addEventListener("DOMContentLoaded", () => {
         <option value="—">—</option>
       </select>`;
     const picHTML = createPicSelectHTML();
+    const includeHTML = createIncludeSelectHTML();
 
     for (let i = 0; i < 4; i++) {
       const tr = document.createElement("tr");
       tr.innerHTML = i === 0 ? `
         <td rowspan="4"></td>
         <td rowspan="4" class="date-cell npra-date" data-raw="">—</td>
-        <td rowspan="4">${line}</td>
+        <td rowspan="4" class="event-cell">${createEventSelectHTML(selectedEvent)}</td>
         <td rowspan="4">${process}</td>
         <td rowspan="4">${product}</td>
         <td rowspan="4">—</td>
         <td rowspan="4">—</td>
         <td rowspan="2" class="vertical-text">OCCURRENCE</td>
         <td>—</td><td class="pic-cell">${picHTML}</td>
+        <td class="include-cell">${includeHTML}</td>
         <td class="date-cell target-date" data-raw="">—</td>
         <td class="status-cell">${statusHTML}</td>
         <td class="date-cell recovery-date" data-raw="">—</td>
       ` : `
         ${i === 2 ? `<td rowspan="2" class="vertical-text">OUTFLOW</td>` : ""}
         <td>—</td><td class="pic-cell">${picHTML}</td>
+        <td class="include-cell">${includeHTML}</td>
         <td class="date-cell target-date" data-raw="">—</td>
         <td class="status-cell">${statusHTML}</td>
         <td class="date-cell recovery-date" data-raw="">—</td>
@@ -534,6 +689,8 @@ document.addEventListener("DOMContentLoaded", () => {
       td.classList.contains("vertical-text") ||
       td.classList.contains("status-cell") ||
       td.classList.contains("pic-cell") ||
+      td.classList.contains("event-cell") ||
+      td.classList.contains("include-cell") ||
       td.querySelector("input") ||
       td.querySelector("select")
     ) return;
@@ -610,6 +767,19 @@ document.addEventListener("DOMContentLoaded", () => {
         e.target.value = "—";
       }
       e.target.dataset.pic = e.target.value;
+      saveTable();
+      applyFilters();
+    }
+
+    if (e.target.classList.contains("event-select")) {
+      e.target.dataset.event = e.target.value;
+      saveTable();
+      applyFilters();
+    }
+
+    if (e.target.classList.contains("include-select")) {
+      if (!INCLUDE_OPTIONS.includes(e.target.value)) e.target.value = "Include";
+      e.target.dataset.include = e.target.value;
       saveTable();
       applyFilters();
     }
@@ -728,6 +898,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= MODEL CONTROLS ================= */
   renderModelOptions();
+  renderEventOptions();
 
   modelSelect?.addEventListener("change", () => {
     switchModel(modelSelect.value);
@@ -761,6 +932,39 @@ document.addEventListener("DOMContentLoaded", () => {
     const nextModel = models[0] || "";
     renderModelOptions();
     switchModel(nextModel);
+  });
+
+
+  addEventBtn?.addEventListener("click", () => {
+    const next = prompt(`Enter new event name for ${selectedMaker}:`);
+    if (!next) return;
+
+    const event = next.trim();
+    if (!event) return;
+
+    const events = getMakerEvents(selectedMaker);
+    if (!events.includes(event)) {
+      events.push(event);
+      saveMakerEvents(selectedMaker, events);
+    }
+
+    renderEventOptions();
+    eventSelect.value = event;
+    loadTable();
+    applyFilters();
+  });
+
+  removeEventBtn?.addEventListener("click", () => {
+    const currentEvent = eventSelect?.value || "";
+    if (!currentEvent) return alert("No event selected.");
+    if (!confirm(`Remove event ${currentEvent} from ${selectedMaker}?`)) return;
+
+    const events = getMakerEvents(selectedMaker).filter(event => event !== currentEvent);
+    saveMakerEvents(selectedMaker, events);
+
+    renderEventOptions();
+    loadTable();
+    applyFilters();
   });
 
   goHomeBtn?.addEventListener("click", () => {
