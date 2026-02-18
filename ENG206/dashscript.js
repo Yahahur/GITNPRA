@@ -48,33 +48,35 @@ document.addEventListener("DOMContentLoaded", () => {
     return option ? (option.value || option.textContent.trim()) : fallback;
   }
 
-  function getStatusCountByModel(maker, model) {
-    const key = buildStorageKey(maker, model);
-    const html = localStorage.getItem(key);
-
+  function getStatusCountByMaker(maker) {
     const count = { Open: 0, Close: 0, Cancelled: 0, Rejected: 0 };
-    if (!html) return count;
 
-    const temp = document.createElement("tbody");
-    temp.innerHTML = html;
+    const models = getMakerModels(maker);
+    models.forEach(model => {
+      const key = buildStorageKey(maker, model);
+      const html = localStorage.getItem(key);
+      if (!html) return;
 
-    temp.querySelectorAll(".status-select").forEach(select => {
-      const val = getSelectValue(select, "status", "Open");
-      if (count.hasOwnProperty(val)) count[val]++;
+      const temp = document.createElement("tbody");
+      temp.innerHTML = html;
+
+      temp.querySelectorAll(".status-select").forEach(select => {
+        const val = getSelectValue(select, "status", "Open");
+        if (count.hasOwnProperty(val)) count[val]++;
+      });
     });
 
     return count;
   }
 
-  function buildModelCard(maker, model) {
-    const status = getStatusCountByModel(maker, model);
+  function buildMakerCard(maker) {
+    const status = getStatusCountByMaker(maker);
 
     const card = document.createElement("div");
     card.className = "maker-card";
 
     card.innerHTML = `
       <div class="maker-name">${maker}</div>
-      <div class="model-name">${model}</div>
       <div class="status-row open"><span>OPEN</span><strong>${status.Open}</strong></div>
       <div class="status-row close"><span>CLOSED</span><strong>${status.Close}</strong></div>
       <div class="status-row cancelled"><span>CANCELLED</span><strong>${status.Cancelled}</strong></div>
@@ -83,6 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     card.addEventListener("click", () => {
       localStorage.setItem("selectedMaker", maker);
+      const models = getMakerModels(maker);
+      const preferred = localStorage.getItem(`selectedModel_${maker}`);
+      const model = preferred && models.includes(preferred) ? preferred : (models[0] || "DEFAULT");
       localStorage.setItem(`selectedModel_${maker}`, model);
       window.location.href = "honda.html";
     });
@@ -95,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
     card.className = "maker-card summary-card";
     card.innerHTML = `
       <div class="maker-name">ALL PIC SUMMARY</div>
-      <p class="summary-note">View total Open/Close/Cancelled/Rejected items grouped by PIC across all models.</p>
+      <p class="summary-note">Select maker and model, then view Open/Close/Cancelled/Rejected by PIC.</p>
       <div class="status-row"><span>OPEN SUMMARY</span><strong>→</strong></div>
       <div class="status-row"><span>CLOSE SUMMARY</span><strong>→</strong></div>
       <div class="status-row"><span>CANCELLED SUMMARY</span><strong>→</strong></div>
@@ -111,12 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderDashboard() {
     makerGrid.innerHTML = "";
-
-    makers.forEach(maker => {
-      const models = getMakerModels(maker);
-      models.forEach(model => makerGrid.appendChild(buildModelCard(maker, model)));
-    });
-
+    makers.forEach(maker => makerGrid.appendChild(buildMakerCard(maker)));
     makerGrid.appendChild(buildSummaryCard());
   }
 
