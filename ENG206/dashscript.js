@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const exportAllDataBtn = document.getElementById("exportAllDataBtn");
   const importAllDataBtn = document.getElementById("importAllDataBtn");
   const importAllDataInput = document.getElementById("importAllDataInput");
+  const goHomeBtn = document.getElementById("goHomeBtn");
 
   function getModelsKey(maker) {
     return `NPRA_MODELS_${maker}`;
@@ -25,12 +26,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getMakerModels(maker) {
     const raw = localStorage.getItem(getModelsKey(maker));
-    if (!raw) return ["DEFAULT"];
+    if (!raw) return [];
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length) return parsed;
     } catch {}
-    return ["DEFAULT"];
+    return [];
   }
 
   function getSelectValue(select, dataKey, fallback = "") {
@@ -87,8 +88,8 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("selectedMaker", maker);
       const models = getMakerModels(maker);
       const preferred = localStorage.getItem(`selectedModel_${maker}`);
-      const model = preferred && models.includes(preferred) ? preferred : (models[0] || "DEFAULT");
-      localStorage.setItem(`selectedModel_${maker}`, model);
+      const model = preferred && models.includes(preferred) ? preferred : (models[0] || "");
+      if (model) localStorage.setItem(`selectedModel_${maker}`, model);
       window.location.href = "honda.html";
     });
 
@@ -175,6 +176,10 @@ document.addEventListener("DOMContentLoaded", () => {
   importAllDataInput?.addEventListener("change", e => {
     importAllMakersData(e.target.files[0]);
     e.target.value = "";
+  });
+
+  goHomeBtn?.addEventListener("click", () => {
+    window.location.href = "dashboard.html";
   });
 
   renderDashboard();

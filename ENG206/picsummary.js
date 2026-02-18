@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const tbody = document.querySelector("#picSummaryTable tbody");
   const backBtn = document.getElementById("backToDashboard");
+  const goHomeBtn = document.getElementById("goHomeBtn");
   const makerFilter = document.getElementById("makerFilter");
   const modelFilter = document.getElementById("modelFilter");
 
@@ -16,12 +17,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getMakerModels(maker) {
     const raw = localStorage.getItem(getModelsKey(maker));
-    if (!raw) return ["DEFAULT"];
+    if (!raw) return [];
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length) return parsed;
     } catch {}
-    return ["DEFAULT"];
+    return [];
   }
 
   function getSelectValue(select, dataKey, fallback = "") {
@@ -59,6 +60,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const models = getMakerModels(maker);
 
     modelFilter.innerHTML = "";
+    if (!models.length) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "No model";
+      modelFilter.appendChild(opt);
+      modelFilter.disabled = true;
+      return;
+    }
+
+    modelFilter.disabled = false;
     models.forEach(model => {
       const opt = document.createElement("option");
       opt.value = model;
@@ -76,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const summary = new Map();
     const maker = makerFilter.value;
     const model = modelFilter.value;
+    if (!maker || !model) return [];
 
     const html = localStorage.getItem(buildStorageKey(maker, model));
     if (!html) return [];
@@ -132,6 +144,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   backBtn?.addEventListener("click", () => {
+    window.location.href = "dashboard.html";
+  });
+
+  goHomeBtn?.addEventListener("click", () => {
     window.location.href = "dashboard.html";
   });
 

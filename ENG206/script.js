@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectedMaker = localStorage.getItem("selectedMaker") || "HONDA";
   const modelSelect = document.getElementById("modelSelect");
   const addModelBtn = document.getElementById("addModelBtn");
+  const removeModelBtn = document.getElementById("removeModelBtn");
+  const goHomeBtn = document.getElementById("goHomeBtn");
 
   function getModelsKey(maker) {
     return `NPRA_MODELS_${maker}`;
@@ -15,24 +17,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getMakerModels(maker) {
     const raw = localStorage.getItem(getModelsKey(maker));
-    if (!raw) return ["DEFAULT"];
+    if (!raw) return [];
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length) return parsed;
     } catch {}
-    return ["DEFAULT"];
+    return [];
   }
 
   function saveMakerModels(maker, models) {
     localStorage.setItem(getModelsKey(maker), JSON.stringify(models));
   }
 
-  let currentModel = localStorage.getItem(`selectedModel_${selectedMaker}`) || getMakerModels(selectedMaker)[0] || "DEFAULT";
-  let STORAGE_KEY = buildStorageKey(selectedMaker, currentModel);
+  let currentModel = localStorage.getItem(`selectedModel_${selectedMaker}`) || getMakerModels(selectedMaker)[0] || "";
+  let STORAGE_KEY = currentModel ? buildStorageKey(selectedMaker, currentModel) : "";
 
   function updateTitle() {
-    document.title = `${selectedMaker} - ${currentModel}`;
-    document.querySelector("h1").textContent = `NPRA MASTER SCHEDULE - ${selectedMaker} (${currentModel})`;
+    document.title = currentModel ? `${selectedMaker} - ${currentModel}` : `${selectedMaker}`;
+    document.querySelector("h1").textContent = currentModel
+      ? `NPRA MASTER SCHEDULE - ${selectedMaker} (${currentModel})`
+      : `NPRA MASTER SCHEDULE - ${selectedMaker} (No model selected)`;
   }
 
   /* ================= ELEMENTS ================= */
@@ -81,27 +85,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const models = getMakerModels(selectedMaker);
     if (!models.includes(currentModel)) {
-      currentModel = models[0] || "DEFAULT";
+      currentModel = models[0] || "";
     }
 
     modelSelect.innerHTML = "";
-    models.forEach(model => {
+    if (models.length === 0) {
       const opt = document.createElement("option");
-      opt.value = model;
-      opt.textContent = model;
-      opt.selected = model === currentModel;
+      opt.value = "";
+      opt.textContent = "No model (add one)";
+      opt.selected = true;
       modelSelect.appendChild(opt);
-    });
+      modelSelect.disabled = true;
+      STORAGE_KEY = "";
+    } else {
+      modelSelect.disabled = false;
+      models.forEach(model => {
+        const opt = document.createElement("option");
+        opt.value = model;
+        opt.textContent = model;
+        opt.selected = model === currentModel;
+        modelSelect.appendChild(opt);
+      });
+      STORAGE_KEY = buildStorageKey(selectedMaker, currentModel);
+      localStorage.setItem(`selectedModel_${selectedMaker}`, currentModel);
+    }
 
-    localStorage.setItem(`selectedModel_${selectedMaker}`, currentModel);
-    STORAGE_KEY = buildStorageKey(selectedMaker, currentModel);
     updateTitle();
   }
 
   function switchModel(model) {
-    currentModel = model;
-    localStorage.setItem(`selectedModel_${selectedMaker}`, currentModel);
-    STORAGE_KEY = buildStorageKey(selectedMaker, currentModel);
+    currentModel = model || "";
+    if (currentModel) {
+      localStorage.setItem(`selectedModel_${selectedMaker}`, currentModel);
+      STORAGE_KEY = buildStorageKey(selectedMaker, currentModel);
+    } else {
+      STORAGE_KEY = "";
+    }
     updateTitle();
     selectedBlock = null;
     clearSelectedBlockUI();
@@ -353,12 +372,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function saveTable() {
     syncSelectValues();
+    if (!STORAGE_KEY) return;
     localStorage.setItem(STORAGE_KEY, mainTableBody.innerHTML);
   }
 
   function loadTable() {
+    if (!STORAGE_KEY) {
+      mainTableBody.innerHTML = "";
+      return;
+    }
+
     const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) return;
+    if (!data) {
+      mainTableBody.innerHTML = "";
+      return;
+    }
     mainTableBody.innerHTML = data;
 
     tagDateCellTypes();
@@ -450,6 +478,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= ADD BLOCK ================= */
   addRowBtn.addEventListener("click", () => {
+    if (!STORAGE_KEY) return alert("Add/select a model first.");
     const line = prompt("Enter Line / Event:");
     const process = prompt("Enter Process:");
     const product = prompt("Enter Product:");
@@ -638,6 +667,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= EXPORT / IMPORT ================= */
   exportBtn.onclick = () => {
+    if (!STORAGE_KEY) return alert("Add/select a model first.");
     const payload = {
       maker: selectedMaker,
       tableHtml: localStorage.getItem(STORAGE_KEY) || ""
@@ -650,7 +680,10 @@ document.addEventListener("DOMContentLoaded", () => {
     URL.revokeObjectURL(a.href);
   };
 
-  importBtn.onclick = () => importInput.click();
+  importBtn.onclick = () => {
+    if (!STORAGE_KEY) return alert("Add/select a model first.");
+    importInput.click();
+  };
 
   importInput.onchange = e => {
     const file = e.target.files[0];
@@ -715,6 +748,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderModelOptions();
     switchModel(model);
+  });
+
+  removeModelBtn?.addEventListener("click", () => {
+    if (!currentModel) return alert("No model selected.");
+    if (!confirm(`Remove model ${currentModel} from ${selectedMaker}?`)) return;
+
+    const models = getMakerModels(selectedMaker).filter(model => model !== currentModel);
+    localStorage.removeItem(buildStorageKey(selectedMaker, currentModel));
+    saveMakerModels(selectedMaker, models);
+
+    const nextModel = models[0] || "";
+    renderModelOptions();
+    switchModel(nextModel);
+  });
+
+  goHomeBtn?.addEventListener("click", () => {
+    window.location.href = "dashboard.html";
   });
 
   /* ================= INITIAL LOAD ================= */
