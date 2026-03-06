@@ -104,17 +104,21 @@ document.addEventListener("DOMContentLoaded", () => {
       const pic = getSelectValue(picSelect, "pic", "—");
       if (!pic) return;
 
-      if (!summary.has(pic)) {
-        summary.set(pic, { Open: 0, Close: 0, Cancelled: 0, Rejected: 0 });
+      const eventSelect = row.querySelector(".event-select");
+      const event = getSelectValue(eventSelect, "event", "—");
+      const key = `${event}__${pic}`;
+
+      if (!summary.has(key)) {
+        summary.set(key, { event, pic, Open: 0, Close: 0, Cancelled: 0, Rejected: 0 });
       }
 
-      const bucket = summary.get(pic);
+      const bucket = summary.get(key);
       if (bucket.hasOwnProperty(status)) {
         bucket[status]++;
       }
     });
 
-    return [...summary.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+    return [...summary.values()].sort((a, b) => (`${a.event}|${a.pic}`).localeCompare(`${b.event}|${b.pic}`));
   }
 
   function render() {
@@ -123,16 +127,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!rows.length) {
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="6" style="text-align:center;">No PIC data found for selected maker/model.</td>`;
+      tr.innerHTML = `<td colspan="7" style="text-align:center;">No PIC data found for selected maker/model.</td>`;
       tbody.appendChild(tr);
       return;
     }
 
-    rows.forEach(([pic, data]) => {
+    rows.forEach(data => {
       const total = data.Open + data.Close + data.Cancelled + data.Rejected;
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${pic}</td>
+        <td>${data.event || "—"}</td>
+        <td>${data.pic}</td>
         <td>${data.Open}</td>
         <td>${data.Close}</td>
         <td>${data.Cancelled}</td>

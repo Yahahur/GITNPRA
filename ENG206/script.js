@@ -50,6 +50,10 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem(getEventsKey(maker), JSON.stringify(events));
   }
 
+  function getSelectedEventKey(maker) {
+    return `selectedEvent_${maker}`;
+  }
+
   let currentModel = localStorage.getItem(`selectedModel_${selectedMaker}`) || getMakerModels(selectedMaker)[0] || "";
   let STORAGE_KEY = currentModel ? buildStorageKey(selectedMaker, currentModel) : "";
 
@@ -182,16 +186,23 @@ document.addEventListener("DOMContentLoaded", () => {
       opt.selected = true;
       eventSelect.appendChild(opt);
       eventSelect.disabled = true;
+      localStorage.removeItem(getSelectedEventKey(selectedMaker));
       return;
     }
+
+    const saved = localStorage.getItem(getSelectedEventKey(selectedMaker));
+    const selected = saved && events.includes(saved) ? saved : events[0];
 
     eventSelect.disabled = false;
     events.forEach(event => {
       const opt = document.createElement("option");
       opt.value = event;
       opt.textContent = event;
+      opt.selected = event === selected;
       eventSelect.appendChild(opt);
     });
+
+    localStorage.setItem(getSelectedEventKey(selectedMaker), selected);
   }
 
   /* ================= UTIL ================= */
@@ -590,6 +601,19 @@ document.addEventListener("DOMContentLoaded", () => {
     return statuses.some(status => enabledStatuses.has(status));
   }
 
+  function getBlockEvent(blockRows) {
+    const firstRow = blockRows[0];
+    if (!firstRow) return "";
+    const select = firstRow.querySelector(".event-select");
+    return select ? select.value : "";
+  }
+
+  function blockMatchesSelectedEvent(blockRows) {
+    const selectedEvent = eventSelect?.value || "";
+    if (!selectedEvent) return true;
+    return getBlockEvent(blockRows) === selectedEvent;
+  }
+
   function applyFilters() {
     const query = (searchInput.value || "").trim().toLowerCase();
     const fromDate = parseDateOnly(dateFrom.value);
@@ -600,7 +624,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const matchesSearch = !query || blockText(blockRows).includes(query);
       const matchesDate = (!fromDate && !toDate) || blockInDateRange(blockRows, fromDate, toDate);
       const matchesStatus = blockMatchesStatus(blockRows, enabledStatuses);
-      const visible = matchesSearch && matchesDate && matchesStatus;
+      const matchesEvent = blockMatchesSelectedEvent(blockRows);
+      const visible = matchesSearch && matchesDate && matchesStatus && matchesEvent;
 
       blockRows.forEach(row => {
         row.style.display = visible ? "" : "none";
@@ -904,6 +929,11 @@ document.addEventListener("DOMContentLoaded", () => {
     switchModel(modelSelect.value);
   });
 
+  eventSelect?.addEventListener("change", () => {
+    localStorage.setItem(getSelectedEventKey(selectedMaker), eventSelect.value || "");
+    applyFilters();
+  });
+
   addModelBtn?.addEventListener("click", () => {
     const next = prompt(`Enter new model name for ${selectedMaker}:`);
     if (!next) return;
@@ -950,6 +980,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderEventOptions();
     eventSelect.value = event;
+    localStorage.setItem(getSelectedEventKey(selectedMaker), event);
     loadTable();
     applyFilters();
   });
@@ -963,6 +994,7 @@ document.addEventListener("DOMContentLoaded", () => {
     saveMakerEvents(selectedMaker, events);
 
     renderEventOptions();
+    localStorage.setItem(getSelectedEventKey(selectedMaker), eventSelect?.value || "");
     loadTable();
     applyFilters();
   });
