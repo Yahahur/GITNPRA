@@ -434,7 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function normalizeAndHydratePicCells() {
     document.querySelectorAll(".status-cell").forEach(statusCell => {
       let picCell = statusCell.previousElementSibling;
-      while (picCell && picCell.classList.contains("date-cell")) {
+      while (picCell && (picCell.classList.contains("date-cell") || picCell.classList.contains("include-cell"))) {
         picCell = picCell.previousElementSibling;
       }
       if (!picCell) return;
