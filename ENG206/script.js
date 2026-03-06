@@ -410,6 +410,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.querySelectorAll(".pic-select").forEach(select => {
+      const persisted = select.dataset.pic || select.value;
+      if (PIC_OPTIONS.includes(persisted)) {
+        select.value = persisted;
+      }
       select.dataset.pic = select.value;
       [...select.options].forEach(opt => {
         opt.selected = opt.value === select.value;
@@ -417,6 +421,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.querySelectorAll(".event-select").forEach(select => {
+      const persisted = select.dataset.event || select.value;
+      if (persisted) {
+        select.value = persisted;
+      }
       select.dataset.event = select.value;
       [...select.options].forEach(opt => {
         opt.selected = opt.value === select.value;
@@ -424,6 +432,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.querySelectorAll(".include-select").forEach(select => {
+      const persisted = select.dataset.include || select.value;
+      if (INCLUDE_OPTIONS.includes(persisted)) {
+        select.value = persisted;
+      }
       select.dataset.include = select.value;
       [...select.options].forEach(opt => {
         opt.selected = opt.value === select.value;
@@ -522,6 +534,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const select = includeCell.querySelector(".include-select");
       if (!select) return;
+
+      const saved = select.dataset.include;
+      if (saved && INCLUDE_OPTIONS.includes(saved)) {
+        select.value = saved;
+      }
+
       if (!INCLUDE_OPTIONS.includes(select.value)) {
         select.value = "Include";
       }
