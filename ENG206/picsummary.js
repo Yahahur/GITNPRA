@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const status = getSelectValue(statusSelect, "status", "Open");
       const pic = getSelectValue(picSelect, "pic", "—");
-      if (!pic) return;
+      if (!pic || pic === "—") return;
 
       const eventSelect = row.querySelector(".event-select");
       const event = getSelectValue(eventSelect, "event", "—");
