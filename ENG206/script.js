@@ -661,6 +661,7 @@ document.addEventListener("DOMContentLoaded", () => {
     normalizeAndHydratePicCells();
     normalizeAndHydrateEventCells();
     normalizeAndHydrateIncludeCells();
+    normalizeCountermeasureCells();
 
     document.querySelectorAll(".status-select").forEach(select => {
       hydrateStatusSelect(select);
@@ -912,27 +913,66 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function parseCountermeasureValue(raw) {
-    const text = String(raw || "");
+    const text = String(raw || "").trim();
     const marker = "\nProcess: ";
     const idx = text.lastIndexOf(marker);
-    if (idx === -1) {
-      return { note: text.trim(), process: "" };
+
+    if (idx !== -1) {
+      return {
+        note: text.slice(0, idx).trim(),
+        process: text.slice(idx + marker.length).trim()
+      };
     }
 
-    return {
-      note: text.slice(0, idx).trim(),
-      process: text.slice(idx + marker.length).trim()
-    };
+    if (text.startsWith("Process: ")) {
+      return { note: "", process: text.slice(9).trim() };
+    }
+
+    return { note: text, process: "" };
   }
 
-  function buildCountermeasureValue(note, process) {
+  function readCountermeasureValue(td) {
+    const note = (td.dataset.countermeasureNote || "").trim();
+    const process = (td.dataset.countermeasureProcess || "").trim();
+    if (note || process) return { note, process };
+    return parseCountermeasureValue(td.textContent === "—" ? "" : td.textContent);
+  }
+
+  function renderCountermeasureCell(td, note, process) {
     const safeNote = (note || "").trim();
     const safeProcess = (process || "").trim();
-    if (!safeNote && !safeProcess) return "—";
-    if (!safeProcess) return safeNote || "—";
-    if (!safeNote) return `Process: ${safeProcess}`;
-    return `${safeNote}
-Process: ${safeProcess}`;
+
+    td.dataset.countermeasureNote = safeNote;
+    td.dataset.countermeasureProcess = safeProcess;
+    td.textContent = "";
+
+    if (!safeNote && !safeProcess) {
+      td.textContent = "—";
+      return;
+    }
+
+    if (safeNote) {
+      const noteDiv = document.createElement("div");
+      noteDiv.className = "countermeasure-note";
+      noteDiv.textContent = safeNote;
+      td.appendChild(noteDiv);
+    }
+
+    if (safeProcess) {
+      const processDiv = document.createElement("div");
+      processDiv.className = "countermeasure-process";
+      processDiv.textContent = `Process: ${safeProcess}`;
+      td.appendChild(processDiv);
+    }
+  }
+
+  function normalizeCountermeasureCells() {
+    mainTableBody.querySelectorAll("td").forEach(td => {
+      if (!isCountermeasureCell(td)) return;
+      if (td.querySelector(".countermeasure-inline-editor")) return;
+      const parsed = readCountermeasureValue(td);
+      renderCountermeasureCell(td, parsed.note, parsed.process);
+    });
   }
 
   /* ================= INLINE EDIT (TEXT ONLY, NO STATUS) ================= */
@@ -953,7 +993,7 @@ Process: ${safeProcess}`;
     const isCountermeasure = isCountermeasureCell(td);
 
     if (isCountermeasure) {
-      const parsed = parseCountermeasureValue(td.textContent === "—" ? "" : td.textContent);
+      const parsed = readCountermeasureValue(td);
       const wrapper = document.createElement("div");
       wrapper.className = "countermeasure-inline-editor";
 
@@ -975,7 +1015,7 @@ Process: ${safeProcess}`;
       const commitEdit = () => {
         if (committed) return;
         committed = true;
-        td.textContent = buildCountermeasureValue(noteEditor.value, processSelect.value);
+        renderCountermeasureCell(td, noteEditor.value, processSelect.value);
         saveTable();
         applyFilters();
       };

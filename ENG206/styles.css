@@ -726,3 +726,14 @@ div[style*="margin: 10px 0;"] {
 .countermeasure-inline-editor select {
   width: 100%;
 }
+
+
+.countermeasure-note {
+  white-space: pre-wrap;
+}
+
+.countermeasure-process {
+  margin-top: 4px;
+  font-weight: 600;
+  color: #1f4e79;
+}
