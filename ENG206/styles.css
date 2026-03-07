@@ -689,12 +689,21 @@ div[style*="margin: 10px 0;"] {
   100% { filter: brightness(1); }
 }
 
-/* Keep Honda page action buttons floating while scrolling */
-.wrapper button {
+/* Keep only Model Selection and Add Row controls floating while scrolling */
+.model-controls {
   position: sticky;
   top: 8px;
-  z-index: 950;
+  z-index: 960;
+  background: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+#addRowBtn {
+  position: sticky;
+  top: 68px;
+  z-index: 955;
 }
 
 .floating-modal button {
