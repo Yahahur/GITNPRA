@@ -409,13 +409,46 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ================= RENUMBER ================= */
-  function renumberItems() {
-    let count = 1;
+  /* ================= ITEM NUMBER ================= */
+  function getNextItemNumber() {
+    const used = new Set();
     for (let i = 0; i < mainTableBody.rows.length; i += 4) {
-      if (mainTableBody.rows[i]) {
-        mainTableBody.rows[i].cells[0].innerText = count++;
+      const row = mainTableBody.rows[i];
+      if (!row || !row.cells[0]) continue;
+      const text = (row.cells[0].textContent || "").trim();
+      const num = Number(text);
+      if (Number.isInteger(num) && num > 0) used.add(num);
+    }
+
+    let candidate = 1;
+    while (used.has(candidate)) candidate++;
+    return candidate;
+  }
+
+  function normalizeItemNumbers() {
+    const used = new Set();
+
+    for (let i = 0; i < mainTableBody.rows.length; i += 4) {
+      const row = mainTableBody.rows[i];
+      if (!row || !row.cells[0]) continue;
+      const text = (row.cells[0].textContent || "").trim();
+      const num = Number(text);
+      if (Number.isInteger(num) && num > 0 && !used.has(num)) {
+        used.add(num);
       }
+    }
+
+    for (let i = 0; i < mainTableBody.rows.length; i += 4) {
+      const row = mainTableBody.rows[i];
+      if (!row || !row.cells[0]) continue;
+      const text = (row.cells[0].textContent || "").trim();
+      const num = Number(text);
+      if (Number.isInteger(num) && num > 0) continue;
+
+      let candidate = 1;
+      while (used.has(candidate)) candidate++;
+      row.cells[0].innerText = String(candidate);
+      used.add(candidate);
     }
   }
 
@@ -601,7 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     updateDateWarnings();
-    renumberItems();
+    normalizeItemNumbers();
   }
 
   /* ================= FILTERS ================= */
@@ -808,7 +841,7 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let i = 0; i < 4; i++) {
       const tr = document.createElement("tr");
       tr.innerHTML = i === 0 ? `
-        <td rowspan="4"></td>
+        <td rowspan="4">${getNextItemNumber()}</td>
         <td rowspan="4" class="date-cell npra-date" data-raw="">—</td>
         <td rowspan="4" class="event-cell">${createEventSelectHTML(selectedEvent)}</td>
         <td rowspan="4">${process}</td>
@@ -832,7 +865,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mainTableBody.appendChild(tr);
     }
 
-    renumberItems();
+    normalizeItemNumbers();
     updateDateWarnings();
     saveTable();
     applyFilters();
@@ -861,6 +894,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     ta.onblur = () => {
       td.textContent = ta.value.trim() || "—";
+      if (td.cellIndex === 0) {
+        normalizeItemNumbers();
+      }
       saveTable();
       applyFilters();
     };
@@ -990,7 +1026,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     selectedBlock = null;
-    renumberItems();
+    normalizeItemNumbers();
     saveTable();
     applyFilters();
   });
