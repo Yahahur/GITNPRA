@@ -911,15 +911,28 @@ document.addEventListener("DOMContentLoaded", () => {
     return Boolean(next && next.classList.contains("pic-cell"));
   }
 
-  function ensureProcessDatalist() {
-    let datalist = document.getElementById("countermeasureProcessOptions");
-    if (datalist) return datalist;
+  function parseCountermeasureValue(raw) {
+    const text = String(raw || "");
+    const marker = "\nProcess: ";
+    const idx = text.lastIndexOf(marker);
+    if (idx === -1) {
+      return { note: text.trim(), process: "" };
+    }
 
-    datalist = document.createElement("datalist");
-    datalist.id = "countermeasureProcessOptions";
-    datalist.innerHTML = PROCESS_OPTIONS.map(process => `<option value="${process}"></option>`).join("");
-    document.body.appendChild(datalist);
-    return datalist;
+    return {
+      note: text.slice(0, idx).trim(),
+      process: text.slice(idx + marker.length).trim()
+    };
+  }
+
+  function buildCountermeasureValue(note, process) {
+    const safeNote = (note || "").trim();
+    const safeProcess = (process || "").trim();
+    if (!safeNote && !safeProcess) return "—";
+    if (!safeProcess) return safeNote || "—";
+    if (!safeNote) return `Process: ${safeProcess}`;
+    return `${safeNote}
+Process: ${safeProcess}`;
   }
 
   /* ================= INLINE EDIT (TEXT ONLY, NO STATUS) ================= */
@@ -938,14 +951,61 @@ document.addEventListener("DOMContentLoaded", () => {
     ) return;
 
     const isCountermeasure = isCountermeasureCell(td);
-    const editor = isCountermeasure ? document.createElement("input") : document.createElement("textarea");
 
     if (isCountermeasure) {
-      editor.type = "text";
-      editor.setAttribute("list", "countermeasureProcessOptions");
-      ensureProcessDatalist();
+      const parsed = parseCountermeasureValue(td.textContent === "—" ? "" : td.textContent);
+      const wrapper = document.createElement("div");
+      wrapper.className = "countermeasure-inline-editor";
+
+      const noteEditor = document.createElement("textarea");
+      noteEditor.placeholder = "Type countermeasure note";
+      noteEditor.value = parsed.note;
+
+      const processSelect = document.createElement("select");
+      processSelect.innerHTML = `<option value="">Select process</option>${PROCESS_OPTIONS.map(process => `<option value="${process}">${process}</option>`).join("")}`;
+      processSelect.value = PROCESS_OPTIONS.includes(parsed.process) ? parsed.process : "";
+
+      wrapper.appendChild(noteEditor);
+      wrapper.appendChild(processSelect);
+      td.textContent = "";
+      td.appendChild(wrapper);
+      noteEditor.focus();
+
+      let committed = false;
+      const commitEdit = () => {
+        if (committed) return;
+        committed = true;
+        td.textContent = buildCountermeasureValue(noteEditor.value, processSelect.value);
+        saveTable();
+        applyFilters();
+      };
+
+      wrapper.addEventListener("focusout", () => {
+        setTimeout(() => {
+          if (!wrapper.contains(document.activeElement)) {
+            commitEdit();
+          }
+        }, 0);
+      });
+
+      noteEditor.addEventListener("keydown", evt => {
+        if (evt.key === "Enter" && !evt.shiftKey) {
+          evt.preventDefault();
+          processSelect.focus();
+        }
+      });
+
+      processSelect.addEventListener("keydown", evt => {
+        if (evt.key === "Enter") {
+          evt.preventDefault();
+          processSelect.blur();
+        }
+      });
+
+      return;
     }
 
+    const editor = document.createElement("textarea");
     editor.value = td.textContent === "—" ? "" : td.textContent;
     td.textContent = "";
     td.appendChild(editor);

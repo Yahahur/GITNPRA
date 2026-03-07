@@ -710,3 +710,19 @@ div[style*="margin: 10px 0;"] {
   position: static;
   box-shadow: none;
 }
+
+
+.countermeasure-inline-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.countermeasure-inline-editor textarea {
+  width: 100%;
+  min-height: 54px;
+}
+
+.countermeasure-inline-editor select {
+  width: 100%;
+}
