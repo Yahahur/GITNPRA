@@ -137,3 +137,40 @@ h1 {
   color: #4b5563;
   margin-bottom: 8px;
 }
+
+.status-count-btn {
+  border: 1px solid #0b66c3;
+  background: #e8f2ff;
+  color: #0b66c3;
+  border-radius: 4px;
+  padding: 4px 8px;
+  min-width: 40px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.status-count-btn:hover {
+  background: #d8eaff;
+}
+
+.summary-detail {
+  margin-top: 16px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 14px;
+}
+
+.summary-detail h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.summary-detail ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.summary-detail li {
+  margin: 4px 0;
+}

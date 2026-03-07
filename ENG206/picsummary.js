@@ -1,11 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
   const makers = ["HONDA", "SUZUKI", "MAZDA", "SUBARU", "DAIHATSU", "TOYOTA", "NISSAN"];
+  const STATUS_KEYS = ["Open", "Close", "Cancelled", "Rejected"];
 
   const tbody = document.querySelector("#picSummaryTable tbody");
   const backBtn = document.getElementById("backToDashboard");
   const goHomeBtn = document.getElementById("goHomeBtn");
   const makerFilter = document.getElementById("makerFilter");
   const modelFilter = document.getElementById("modelFilter");
+  const statusDetailPanel = document.getElementById("statusDetailPanel");
+  const statusDetailTitle = document.getElementById("statusDetailTitle");
+  const statusDetailList = document.getElementById("statusDetailList");
 
   function getModelsKey(maker) {
     return `NPRA_MODELS_${maker}`;
@@ -38,6 +42,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const option = select.options[select.selectedIndex >= 0 ? select.selectedIndex : 0];
     return option ? (option.value || option.textContent.trim()) : fallback;
+  }
+
+  function getBlockHeader(rows, index) {
+    const blockStart = Math.floor(index / 4) * 4;
+    const headerRow = rows[blockStart];
+    if (!headerRow) return { itemNo: "—", process: "—", product: "—" };
+
+    return {
+      itemNo: headerRow.cells[0]?.textContent?.trim() || "—",
+      process: headerRow.cells[3]?.textContent?.trim() || "—",
+      product: headerRow.cells[4]?.textContent?.trim() || "—"
+    };
+  }
+
+  function addDetail(summary, key, status, detail) {
+    if (!summary.has(key)) {
+      summary.set(key, {
+        event: detail.event,
+        pic: detail.pic,
+        Open: 0,
+        Close: 0,
+        Cancelled: 0,
+        Rejected: 0,
+        details: {
+          Open: [],
+          Close: [],
+          Cancelled: [],
+          Rejected: []
+        }
+      });
+    }
+
+    const bucket = summary.get(key);
+    if (!STATUS_KEYS.includes(status)) return;
+    bucket[status] += 1;
+    bucket.details[status].push(detail);
   }
 
   function populateMakerOptions() {
@@ -95,7 +135,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const temp = document.createElement("tbody");
     temp.innerHTML = html;
 
-    temp.querySelectorAll("tr").forEach(row => {
+    const rows = Array.from(temp.querySelectorAll("tr"));
+    let currentEvent = "";
+
+    rows.forEach((row, index) => {
       const statusSelect = row.querySelector(".status-select");
       const picSelect = row.querySelector(".pic-select");
       if (!statusSelect || !picSelect) return;
@@ -105,25 +148,57 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!pic || pic === "—") return;
 
       const eventSelect = row.querySelector(".event-select");
-      const event = getSelectValue(eventSelect, "event", "—");
+      if (eventSelect) {
+        currentEvent = getSelectValue(eventSelect, "event", "").trim();
+      }
+      const event = currentEvent || "No event";
       const key = `${event}__${pic}`;
+      const blockInfo = getBlockHeader(rows, index);
 
-      if (!summary.has(key)) {
-        summary.set(key, { event, pic, Open: 0, Close: 0, Cancelled: 0, Rejected: 0 });
-      }
-
-      const bucket = summary.get(key);
-      if (bucket.hasOwnProperty(status)) {
-        bucket[status]++;
-      }
+      addDetail(summary, key, status, {
+        event,
+        pic,
+        itemNo: blockInfo.itemNo,
+        process: blockInfo.process,
+        product: blockInfo.product,
+        status
+      });
     });
 
     return [...summary.values()].sort((a, b) => (`${a.event}|${a.pic}`).localeCompare(`${b.event}|${b.pic}`));
   }
 
+  function clearStatusDetails() {
+    statusDetailPanel.hidden = true;
+    statusDetailList.innerHTML = "";
+    statusDetailTitle.textContent = "Details";
+  }
+
+  function showStatusDetails(data, status) {
+    const records = data?.details?.[status] || [];
+    statusDetailList.innerHTML = "";
+
+    statusDetailTitle.textContent = `${status.toUpperCase()} items • ${data.event} • ${data.pic}`;
+
+    if (!records.length) {
+      const li = document.createElement("li");
+      li.textContent = "No matching items.";
+      statusDetailList.appendChild(li);
+    } else {
+      records.forEach(record => {
+        const li = document.createElement("li");
+        li.textContent = `Item ${record.itemNo} — ${record.process} / ${record.product}`;
+        statusDetailList.appendChild(li);
+      });
+    }
+
+    statusDetailPanel.hidden = false;
+  }
+
   function render() {
     const rows = collectSummary();
     tbody.innerHTML = "";
+    clearStatusDetails();
 
     if (!rows.length) {
       const tr = document.createElement("tr");
@@ -132,19 +207,29 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    rows.forEach(data => {
+    rows.forEach((data, index) => {
       const total = data.Open + data.Close + data.Cancelled + data.Rejected;
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${data.event || "—"}</td>
+        <td>${data.event}</td>
         <td>${data.pic}</td>
-        <td>${data.Open}</td>
-        <td>${data.Close}</td>
-        <td>${data.Cancelled}</td>
-        <td>${data.Rejected}</td>
+        <td><button class="status-count-btn" data-row-index="${index}" data-status="Open">${data.Open}</button></td>
+        <td><button class="status-count-btn" data-row-index="${index}" data-status="Close">${data.Close}</button></td>
+        <td><button class="status-count-btn" data-row-index="${index}" data-status="Cancelled">${data.Cancelled}</button></td>
+        <td><button class="status-count-btn" data-row-index="${index}" data-status="Rejected">${data.Rejected}</button></td>
         <td>${total}</td>
       `;
+      tr.dataset.summaryIndex = String(index);
       tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll(".status-count-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const rowIndex = Number(btn.dataset.rowIndex);
+        const status = btn.dataset.status;
+        if (Number.isNaN(rowIndex) || !status) return;
+        showStatusDetails(rows[rowIndex], status);
+      });
     });
   }
 
