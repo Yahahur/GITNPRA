@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const goHomeBtn = document.getElementById("goHomeBtn");
   const makerFilter = document.getElementById("makerFilter");
   const modelFilter = document.getElementById("modelFilter");
+  const eventFilter = document.getElementById("eventFilter");
   const statusDetailPanel = document.getElementById("statusDetailPanel");
   const statusDetailTitle = document.getElementById("statusDetailTitle");
   const statusDetailList = document.getElementById("statusDetailList");
@@ -16,12 +17,30 @@ document.addEventListener("DOMContentLoaded", () => {
     return `NPRA_MODELS_${maker}`;
   }
 
+  function getEventsKey(maker) {
+    return `NPRA_EVENTS_${maker}`;
+  }
+
+  function getSelectedEventKey(maker) {
+    return `selectedEvent_${maker}`;
+  }
+
   function buildStorageKey(maker, model) {
     return `NPRA_MASTER_SCHEDULE_${maker}__${model}`;
   }
 
   function getMakerModels(maker) {
     const raw = localStorage.getItem(getModelsKey(maker));
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    } catch {}
+    return [];
+  }
+
+  function getMakerEvents(maker) {
+    const raw = localStorage.getItem(getEventsKey(maker));
     if (!raw) return [];
     try {
       const parsed = JSON.parse(raw);
@@ -158,10 +177,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function populateEventOptions() {
+    const maker = makerFilter.value;
+    const events = getMakerEvents(maker);
+
+    eventFilter.innerHTML = "";
+    if (!events.length) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "All events";
+      eventFilter.appendChild(opt);
+      eventFilter.disabled = true;
+      return;
+    }
+
+    eventFilter.disabled = false;
+    events.forEach(event => {
+      const opt = document.createElement("option");
+      opt.value = event;
+      opt.textContent = event;
+      eventFilter.appendChild(opt);
+    });
+
+    const saved = localStorage.getItem(getSelectedEventKey(maker));
+    if (saved && events.includes(saved)) {
+      eventFilter.value = saved;
+    }
+  }
+
   function collectSummary() {
     const summary = new Map();
     const maker = makerFilter.value;
     const model = modelFilter.value;
+    const selectedEvent = eventFilter?.value || "";
     if (!maker || !model) return [];
 
     const html = localStorage.getItem(buildStorageKey(maker, model));
@@ -187,6 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentEvent = getSelectValue(eventSelect, "event", "").trim();
       }
       const event = currentEvent || "No event";
+      if (selectedEvent && event !== selectedEvent) return;
       const key = `${event}__${pic}`;
       const blockInfo = getBlockHeader(rows, index);
 
@@ -285,7 +334,11 @@ document.addEventListener("DOMContentLoaded", () => {
   makerFilter?.addEventListener("change", () => {
     localStorage.setItem("selectedMaker", makerFilter.value);
     populateModelOptions();
+    populateEventOptions();
     localStorage.setItem(`selectedModel_${makerFilter.value}`, modelFilter.value);
+    if (eventFilter?.value) {
+      localStorage.setItem(getSelectedEventKey(makerFilter.value), eventFilter.value);
+    }
     render();
   });
 
@@ -294,7 +347,15 @@ document.addEventListener("DOMContentLoaded", () => {
     render();
   });
 
+  eventFilter?.addEventListener("change", () => {
+    if (eventFilter.value) {
+      localStorage.setItem(getSelectedEventKey(makerFilter.value), eventFilter.value);
+    }
+    render();
+  });
+
   populateMakerOptions();
   populateModelOptions();
+  populateEventOptions();
   render();
 });
