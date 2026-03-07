@@ -688,3 +688,16 @@ div[style*="margin: 10px 0;"] {
   50% { filter: brightness(1.08); }
   100% { filter: brightness(1); }
 }
+
+/* Keep Honda page action buttons floating while scrolling */
+.wrapper button {
+  position: sticky;
+  top: 8px;
+  z-index: 950;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.floating-modal button {
+  position: static;
+  box-shadow: none;
+}
