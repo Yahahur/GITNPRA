@@ -672,3 +672,19 @@ div[style*="margin: 10px 0;"] {
   text-align: center;
   font-size: 13px;
 }
+
+
+.summary-target-highlight {
+  animation: summaryTargetPulse 1s ease-in-out infinite;
+}
+
+.summary-target-highlight td {
+  background-color: #d4edff !important;
+  outline: 2px solid #2196f3;
+}
+
+@keyframes summaryTargetPulse {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.08); }
+  100% { filter: brightness(1); }
+}

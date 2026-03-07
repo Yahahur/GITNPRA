@@ -90,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusFilterResetBtn = document.getElementById("statusFilterResetBtn");
 
   let selectedBlock = null;
+  let summaryHighlightTimeout = null;
   const SUMMARY_TARGET_KEY = "NPRA_SUMMARY_TARGET";
 
   const PIC_OPTIONS = [
@@ -670,6 +671,33 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedBlock = blockRows[0] || null;
   }
 
+  function clearSummaryTargetHighlight() {
+    if (summaryHighlightTimeout) {
+      clearTimeout(summaryHighlightTimeout);
+      summaryHighlightTimeout = null;
+    }
+    document.querySelectorAll("tr.summary-target-highlight").forEach(tr => {
+      tr.classList.remove("summary-target-highlight");
+    });
+  }
+
+  function highlightSummaryTargetBlock(row) {
+    const rows = Array.from(mainTableBody.rows);
+    const index = rows.indexOf(row);
+    if (index === -1) return;
+
+    const start = Math.floor(index / 4) * 4;
+    const blockRows = rows.slice(start, start + 4);
+
+    clearSummaryTargetHighlight();
+    blockRows.forEach(r => r.classList.add("summary-target-highlight"));
+
+    summaryHighlightTimeout = setTimeout(() => {
+      blockRows.forEach(r => r.classList.remove("summary-target-highlight"));
+      summaryHighlightTimeout = null;
+    }, 5000);
+  }
+
   function loadSummaryTarget() {
     const raw = localStorage.getItem(SUMMARY_TARGET_KEY);
     if (!raw) return null;
@@ -728,7 +756,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (targetRow) {
-      setSelectedBlockFromRow(targetRow);
+      highlightSummaryTargetBlock(targetRow);
       targetRow.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
