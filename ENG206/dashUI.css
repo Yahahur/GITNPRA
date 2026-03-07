@@ -174,3 +174,18 @@ h1 {
 .summary-detail li {
   margin: 4px 0;
 }
+
+.detail-item-btn {
+  border: none;
+  background: transparent;
+  color: #0b66c3;
+  cursor: pointer;
+  text-align: left;
+  padding: 2px 0;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+.detail-item-btn:hover {
+  color: #084a8c;
+}

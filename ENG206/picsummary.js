@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const makers = ["HONDA", "SUZUKI", "MAZDA", "SUBARU", "DAIHATSU", "TOYOTA", "NISSAN"];
   const STATUS_KEYS = ["Open", "Close", "Cancelled", "Rejected"];
+  const SUMMARY_TARGET_KEY = "NPRA_SUMMARY_TARGET";
 
   const tbody = document.querySelector("#picSummaryTable tbody");
   const backBtn = document.getElementById("backToDashboard");
@@ -61,6 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
       summary.set(key, {
         event: detail.event,
         pic: detail.pic,
+        maker: detail.maker,
+        model: detail.model,
         Open: 0,
         Close: 0,
         Cancelled: 0,
@@ -78,6 +81,33 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!STATUS_KEYS.includes(status)) return;
     bucket[status] += 1;
     bucket.details[status].push(detail);
+  }
+
+  function openSummaryTarget(record) {
+    if (!record) return;
+
+    const maker = record.maker || makerFilter.value || "HONDA";
+    const model = record.model || modelFilter.value || "";
+
+    localStorage.setItem("selectedMaker", maker);
+    if (model) {
+      localStorage.setItem(`selectedModel_${maker}`, model);
+    }
+
+    const payload = {
+      maker,
+      model,
+      event: record.event || "",
+      pic: record.pic || "",
+      status: record.status || "",
+      itemNo: record.itemNo || "",
+      process: record.process || "",
+      product: record.product || "",
+      createdAt: Date.now()
+    };
+    localStorage.setItem(SUMMARY_TARGET_KEY, JSON.stringify(payload));
+
+    window.location.href = "honda.html";
   }
 
   function populateMakerOptions() {
@@ -156,6 +186,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const blockInfo = getBlockHeader(rows, index);
 
       addDetail(summary, key, status, {
+        maker,
+        model,
         event,
         pic,
         itemNo: blockInfo.itemNo,
@@ -187,7 +219,12 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       records.forEach(record => {
         const li = document.createElement("li");
-        li.textContent = `Item ${record.itemNo} — ${record.process} / ${record.product}`;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "detail-item-btn";
+        btn.textContent = `Item ${record.itemNo} — ${record.process} / ${record.product}`;
+        btn.addEventListener("click", () => openSummaryTarget(record));
+        li.appendChild(btn);
         statusDetailList.appendChild(li);
       });
     }
@@ -219,7 +256,6 @@ document.addEventListener("DOMContentLoaded", () => {
         <td><button class="status-count-btn" data-row-index="${index}" data-status="Rejected">${data.Rejected}</button></td>
         <td>${total}</td>
       `;
-      tr.dataset.summaryIndex = String(index);
       tbody.appendChild(tr);
     });
 

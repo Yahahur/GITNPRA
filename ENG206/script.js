@@ -90,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusFilterResetBtn = document.getElementById("statusFilterResetBtn");
 
   let selectedBlock = null;
+  const SUMMARY_TARGET_KEY = "NPRA_SUMMARY_TARGET";
 
   const PIC_OPTIONS = [
     "FMEA","APQP","MPPD","PREPARATION","EVENT","DOCUMENTATION",
@@ -669,6 +670,71 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedBlock = blockRows[0] || null;
   }
 
+  function loadSummaryTarget() {
+    const raw = localStorage.getItem(SUMMARY_TARGET_KEY);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  function clearSummaryTarget() {
+    localStorage.removeItem(SUMMARY_TARGET_KEY);
+  }
+
+  function jumpToSummaryTarget() {
+    const target = loadSummaryTarget();
+    if (!target) return;
+
+    if (target.maker && target.maker !== selectedMaker) {
+      clearSummaryTarget();
+      return;
+    }
+
+    if (target.model && modelSelect && modelSelect.value !== target.model) {
+      const hasModel = Array.from(modelSelect.options).some(opt => opt.value === target.model);
+      if (hasModel) {
+        switchModel(target.model);
+      }
+    }
+
+    if (target.event && eventSelect) {
+      const hasEvent = Array.from(eventSelect.options).some(opt => opt.value === target.event);
+      if (hasEvent) {
+        eventSelect.value = target.event;
+        localStorage.setItem(getSelectedEventKey(selectedMaker), target.event);
+      }
+    }
+
+    searchInput.value = "";
+    dateFrom.value = "";
+    dateTo.value = "";
+    statusFilterInputs.forEach(input => {
+      input.checked = true;
+    });
+    applyFilters();
+
+    const allRows = Array.from(mainTableBody.rows);
+    const targetRow = allRows.find(row => {
+      const itemNo = row.cells[0]?.textContent?.trim();
+      const process = row.cells[3]?.textContent?.trim();
+      const product = row.cells[4]?.textContent?.trim();
+      if (target.itemNo && itemNo !== target.itemNo) return false;
+      if (target.process && process !== target.process) return false;
+      if (target.product && product !== target.product) return false;
+      return true;
+    });
+
+    if (targetRow) {
+      setSelectedBlockFromRow(targetRow);
+      targetRow.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    clearSummaryTarget();
+  }
+
   /* ================= ADD BLOCK ================= */
   addRowBtn.addEventListener("click", () => {
     if (!STORAGE_KEY) return alert("Add/select a model first.");
@@ -1024,5 +1090,6 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= INITIAL LOAD ================= */
   loadTable();
   applyFilters();
+  jumpToSummaryTarget();
 
 });
