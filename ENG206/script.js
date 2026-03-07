@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const eventSelect = document.getElementById("eventSelect");
   const addEventBtn = document.getElementById("addEventBtn");
   const removeEventBtn = document.getElementById("removeEventBtn");
+  const goPicSummaryBtn = document.getElementById("goPicSummaryBtn");
   const goHomeBtn = document.getElementById("goHomeBtn");
 
   function getModelsKey(maker) {
@@ -1109,6 +1110,14 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem(getSelectedEventKey(selectedMaker), eventSelect?.value || "");
     loadTable();
     applyFilters();
+  });
+
+  goPicSummaryBtn?.addEventListener("click", () => {
+    localStorage.setItem("selectedMaker", selectedMaker);
+    if (currentModel) {
+      localStorage.setItem(`selectedModel_${selectedMaker}`, currentModel);
+    }
+    window.location.href = "picsummary.html";
   });
 
   goHomeBtn?.addEventListener("click", () => {
