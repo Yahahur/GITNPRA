@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const makers = ["HONDA", "SUZUKI", "MAZDA", "SUBARU", "DAIHATSU", "TOYOTA", "NISSAN"];
-  const STATUS_KEYS = ["Open", "Close", "Cancelled", "Rejected"];
+  const STATUS_KEYS = ["Open", "Closed", "Cancelled", "Rejected"];
   const SUMMARY_TARGET_KEY = "NPRA_SUMMARY_TARGET";
 
   const tbody = document.querySelector("#picSummaryTable tbody");
@@ -28,6 +28,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (Array.isArray(parsed) && parsed.length) return parsed;
     } catch {}
     return [];
+  }
+
+  function normalizeStatus(value) {
+    if (value === "Close") return "Closed";
+    return value;
   }
 
   function getSelectValue(select, dataKey, fallback = "") {
@@ -65,12 +70,12 @@ document.addEventListener("DOMContentLoaded", () => {
         maker: detail.maker,
         model: detail.model,
         Open: 0,
-        Close: 0,
+        Closed: 0,
         Cancelled: 0,
         Rejected: 0,
         details: {
           Open: [],
-          Close: [],
+          Closed: [],
           Cancelled: [],
           Rejected: []
         }
@@ -173,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const picSelect = row.querySelector(".pic-select");
       if (!statusSelect || !picSelect) return;
 
-      const status = getSelectValue(statusSelect, "status", "Open");
+      const status = normalizeStatus(getSelectValue(statusSelect, "status", "Open"));
       const pic = getSelectValue(picSelect, "pic", "—");
       if (!pic || pic === "—") return;
 
@@ -245,13 +250,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     rows.forEach((data, index) => {
-      const total = data.Open + data.Close + data.Cancelled + data.Rejected;
+      const total = data.Open + data.Closed + data.Cancelled + data.Rejected;
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${data.event}</td>
         <td>${data.pic}</td>
         <td><button class="status-count-btn" data-row-index="${index}" data-status="Open">${data.Open}</button></td>
-        <td><button class="status-count-btn" data-row-index="${index}" data-status="Close">${data.Close}</button></td>
+        <td><button class="status-count-btn" data-row-index="${index}" data-status="Closed">${data.Closed}</button></td>
         <td><button class="status-count-btn" data-row-index="${index}" data-status="Cancelled">${data.Cancelled}</button></td>
         <td><button class="status-count-btn" data-row-index="${index}" data-status="Rejected">${data.Rejected}</button></td>
         <td>${total}</td>

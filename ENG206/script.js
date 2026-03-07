@@ -100,7 +100,18 @@ document.addEventListener("DOMContentLoaded", () => {
     "eed final assy", "Final ect", "md", "pd pc event", "mm and eq", "—"
   ];
 
-  const INCLUDE_OPTIONS = ["Include", "Not Include"];
+  const INCLUDE_OPTIONS = ["For Include", "Not Included"];
+
+  function normalizeStatus(value) {
+    if (value === "Close") return "Closed";
+    return value;
+  }
+
+  function normalizeInclude(value) {
+    if (value === "Include") return "For Include";
+    if (value === "Not Include") return "Not Included";
+    return value;
+  }
 
   function createPicSelectHTML(selected = "—") {
     const options = PIC_OPTIONS.map(pic => {
@@ -120,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<select class="event-select" data-event="${selected}">${options}</select>`;
   }
 
-  function createIncludeSelectHTML(selected = "Include") {
+  function createIncludeSelectHTML(selected = "For Include") {
     const options = INCLUDE_OPTIONS.map(v => {
       const selectedAttr = v === selected ? " selected" : "";
       return `<option value="${v}"${selectedAttr}>${v}</option>`;
@@ -282,14 +293,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     td.style.backgroundColor =
       val === "Open" ? "#f8d7da" :
-      val === "Close" ? "#d4edda" :
+      val === "Closed" ? "#d4edda" :
       val === "Cancelled" ? "#fff3cd" :
       val === "Rejected" ? "#f5c6cb" :
       "";
   }
 
   function hydrateStatusSelect(select) {
-    const savedStatus = select.dataset.status;
+    const legacyCloseOption = select.querySelector('option[value="Close"]');
+    if (legacyCloseOption) {
+      legacyCloseOption.value = "Closed";
+      legacyCloseOption.textContent = "Closed";
+    }
+
+    const savedStatus = normalizeStatus(select.dataset.status || select.value);
     if (savedStatus) {
       select.value = savedStatus;
     }
@@ -328,11 +345,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function isResolvedStatus(status) {
-    return ["Close", "Cancelled", "Rejected"].includes(status);
+    return ["Closed", "Cancelled", "Rejected"].includes(status);
   }
 
   function getStatusDateColor(status) {
-    if (status === "Close") return "#d4edda";
+    if (status === "Closed") return "#d4edda";
     if (status === "Cancelled") return "#fff3cd";
     if (status === "Rejected") return "#f5c6cb";
     return "";
@@ -405,6 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= SAVE / LOAD ================= */
   function syncSelectValues() {
     document.querySelectorAll(".status-select").forEach(select => {
+      select.value = normalizeStatus(select.value);
       select.dataset.status = select.value;
       select.dataset.reason = select.dataset.reason || "";
       [...select.options].forEach(opt => {
@@ -435,7 +453,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.querySelectorAll(".include-select").forEach(select => {
-      const persisted = select.dataset.include || select.value;
+      const persisted = normalizeInclude(select.dataset.include || select.value);
       if (INCLUDE_OPTIONS.includes(persisted)) {
         select.value = persisted;
       }
@@ -531,20 +549,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!includeCell.querySelector(".include-select")) {
         const raw = (includeCell.textContent || "").trim();
-        const selected = INCLUDE_OPTIONS.includes(raw) ? raw : "Include";
+        const normalizedRaw = normalizeInclude(raw);
+        const selected = INCLUDE_OPTIONS.includes(normalizedRaw) ? normalizedRaw : "For Include";
         includeCell.innerHTML = createIncludeSelectHTML(selected);
       }
 
       const select = includeCell.querySelector(".include-select");
       if (!select) return;
 
-      const saved = select.dataset.include;
+      const saved = normalizeInclude(select.dataset.include);
       if (saved && INCLUDE_OPTIONS.includes(saved)) {
         select.value = saved;
       }
 
+      select.value = normalizeInclude(select.value);
       if (!INCLUDE_OPTIONS.includes(select.value)) {
-        select.value = "Include";
+        select.value = "For Include";
       }
       select.dataset.include = select.value;
     });
@@ -777,13 +797,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const statusHTML = `
       <select class="status-select">
         <option value="Open">Open</option>
-        <option value="Close">Close</option>
+        <option value="Closed">Closed</option>
         <option value="Cancelled">Cancelled</option>
         <option value="Rejected">Rejected</option>
         <option value="—">—</option>
       </select>`;
     const picHTML = createPicSelectHTML();
-    const includeHTML = createIncludeSelectHTML();
+    const includeHTML = createIncludeSelectHTML("For Include");
 
     for (let i = 0; i < 4; i++) {
       const tr = document.createElement("tr");
@@ -888,7 +908,8 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= STATUS CHANGE ================= */
   document.addEventListener("change", e => {
     if (e.target.classList.contains("status-select")) {
-      const allowed = ["Open", "Close", "Cancelled", "Rejected", "—"];
+      const allowed = ["Open", "Closed", "Close", "Cancelled", "Rejected", "—"];
+      e.target.value = normalizeStatus(e.target.value);
       if (!allowed.includes(e.target.value)) e.target.value = "Open";
 
       askReasonIfNeeded(e.target);
@@ -916,7 +937,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (e.target.classList.contains("include-select")) {
-      if (!INCLUDE_OPTIONS.includes(e.target.value)) e.target.value = "Include";
+      e.target.value = normalizeInclude(e.target.value);
+      if (!INCLUDE_OPTIONS.includes(e.target.value)) e.target.value = "For Include";
       e.target.dataset.include = e.target.value;
       saveTable();
       applyFilters();

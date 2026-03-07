@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getStatusCountByMaker(maker) {
-    const count = { Open: 0, Close: 0, Cancelled: 0, Rejected: 0 };
+    const count = { Open: 0, Closed: 0, Cancelled: 0, Rejected: 0 };
 
     const models = getMakerModels(maker);
     models.forEach(model => {
@@ -62,7 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
       temp.innerHTML = html;
 
       temp.querySelectorAll(".status-select").forEach(select => {
-        const val = getSelectValue(select, "status", "Open");
+        let val = getSelectValue(select, "status", "Open");
+        if (val === "Close") val = "Closed";
         if (count.hasOwnProperty(val)) count[val]++;
       });
     });
@@ -79,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     card.innerHTML = `
       <div class="maker-name">${maker}</div>
       <div class="status-row open"><span>OPEN</span><strong>${status.Open}</strong></div>
-      <div class="status-row close"><span>CLOSED</span><strong>${status.Close}</strong></div>
+      <div class="status-row close"><span>CLOSED</span><strong>${status.Closed}</strong></div>
       <div class="status-row cancelled"><span>CANCELLED</span><strong>${status.Cancelled}</strong></div>
       <div class="status-row rejected"><span>REJECTED</span><strong>${status.Rejected}</strong></div>
     `;
@@ -101,9 +102,9 @@ document.addEventListener("DOMContentLoaded", () => {
     card.className = "maker-card summary-card";
     card.innerHTML = `
       <div class="maker-name">ALL PIC SUMMARY</div>
-      <p class="summary-note">Select maker and model, then view Open/Close/Cancelled/Rejected by PIC.</p>
+      <p class="summary-note">Select maker and model, then view Open/Closed/Cancelled/Rejected by PIC.</p>
       <div class="status-row"><span>OPEN SUMMARY</span><strong>→</strong></div>
-      <div class="status-row"><span>CLOSE SUMMARY</span><strong>→</strong></div>
+      <div class="status-row"><span>CLOSED SUMMARY</span><strong>→</strong></div>
       <div class="status-row"><span>CANCELLED SUMMARY</span><strong>→</strong></div>
       <div class="status-row"><span>REJECTED SUMMARY</span><strong>→</strong></div>
     `;
