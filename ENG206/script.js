@@ -61,8 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateTitle() {
     document.title = currentModel ? `${selectedMaker} - ${currentModel}` : `${selectedMaker}`;
     document.querySelector("h1").textContent = currentModel
-      ? `NPRA MASTER SCHEDULE - ${selectedMaker} (${currentModel})`
-      : `NPRA MASTER SCHEDULE - ${selectedMaker} (No model selected)`;
+      ? `Failure Mode and Effects Analysis Form - ${selectedMaker} (${currentModel})`
+      : `Failure Mode and Effects Analysis Form - ${selectedMaker} (No model selected)`;
   }
 
   /* ================= ELEMENTS ================= */
