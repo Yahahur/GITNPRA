@@ -101,6 +101,41 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const INCLUDE_OPTIONS = ["For Include", "Not Included"];
+  const PROCESS_OPTIONS = [
+    "01 Warehouse Parts Storage, Withdrawal",
+    "05 Waterproof rubber plug insertion (Tsumesen)",
+    "06 Resistance Value Inspection",
+    "07 Sub Assembly",
+    "08 Bukumi",
+    "09 Grommet Fitting and Fixing (Pre and Post Assembly)",
+    "10 Assembly Process",
+    "11 Withstand Voltage Inspection",
+    "12 Offline Fitting (Protector and Clamp)",
+    "13 Dimension Inspection",
+    "14 ECT Inspection (ECT, TBO, and Clamp Checking)",
+    "15 Fuse Attachment",
+    "16 Torque Tightening and Inspection",
+    "17 Waterproof Rubber Plug Inspection (Tsumesen and Gomusen)",
+    "18 Offline fitting (R-box)",
+    "19 Relay Attachment",
+    "20 Waterproof Offline silicon Injecting",
+    "21 Identification Tape Detecting Inspection",
+    "22 Waterproof Inspection (Helium)",
+    "23 Fuse Image Inspection",
+    "25 Unity Band Fitting",
+    "26 Binding Band Attachment",
+    "27 Option Taping",
+    "28 Appearance Inspection",
+    "29 Alignment Inspection",
+    "30 Assurance Inspection",
+    "31 Packing",
+    "32 First Good Inspection",
+    "33 Finished Goods Preparation",
+    "34 Defective product treatment (Repair)",
+    "35 Bulb Lighting Inspection",
+    "37 Dock Audit",
+    "38 Wire Setting"
+  ];
 
   function normalizeStatus(value) {
     if (value === "Close") return "Closed";
@@ -871,6 +906,22 @@ document.addEventListener("DOMContentLoaded", () => {
     applyFilters();
   });
 
+  function isCountermeasureCell(td) {
+    const next = td?.nextElementSibling;
+    return Boolean(next && next.classList.contains("pic-cell"));
+  }
+
+  function ensureProcessDatalist() {
+    let datalist = document.getElementById("countermeasureProcessOptions");
+    if (datalist) return datalist;
+
+    datalist = document.createElement("datalist");
+    datalist.id = "countermeasureProcessOptions";
+    datalist.innerHTML = PROCESS_OPTIONS.map(process => `<option value="${process}"></option>`).join("");
+    document.body.appendChild(datalist);
+    return datalist;
+  }
+
   /* ================= INLINE EDIT (TEXT ONLY, NO STATUS) ================= */
   document.addEventListener("dblclick", e => {
     const td = e.target.closest("td");
@@ -886,19 +937,35 @@ document.addEventListener("DOMContentLoaded", () => {
       td.querySelector("select")
     ) return;
 
-    const ta = document.createElement("textarea");
-    ta.value = td.textContent === "—" ? "" : td.textContent;
-    td.textContent = "";
-    td.appendChild(ta);
-    ta.focus();
+    const isCountermeasure = isCountermeasureCell(td);
+    const editor = isCountermeasure ? document.createElement("input") : document.createElement("textarea");
 
-    ta.onblur = () => {
-      td.textContent = ta.value.trim() || "—";
+    if (isCountermeasure) {
+      editor.type = "text";
+      editor.setAttribute("list", "countermeasureProcessOptions");
+      ensureProcessDatalist();
+    }
+
+    editor.value = td.textContent === "—" ? "" : td.textContent;
+    td.textContent = "";
+    td.appendChild(editor);
+    editor.focus();
+
+    const commitEdit = () => {
+      td.textContent = editor.value.trim() || "—";
       if (td.cellIndex === 0) {
         normalizeItemNumbers();
       }
       saveTable();
       applyFilters();
+    };
+
+    editor.onblur = commitEdit;
+    editor.onkeydown = evt => {
+      if (evt.key === "Enter") {
+        evt.preventDefault();
+        editor.blur();
+      }
     };
   });
 
