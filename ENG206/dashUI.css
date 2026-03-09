@@ -256,3 +256,13 @@ h1 {
   border: 1px solid var(--dash-border);
   padding: 6px 8px;
 }
+
+/* Stronger summary table outlines for better visibility */
+.summary-table {
+  border: 2px solid #1e293b;
+}
+
+.summary-table th,
+.summary-table td {
+  border: 1.5px solid #334155;
+}
