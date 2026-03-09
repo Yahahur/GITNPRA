@@ -189,3 +189,70 @@ h1 {
 .detail-item-btn:hover {
   color: #084a8c;
 }
+
+/* ===== Modern dashboard refresh ===== */
+:root {
+  --dash-bg: #f5f8ff;
+  --dash-surface: #ffffff;
+  --dash-text: #0f172a;
+  --dash-muted: #475569;
+  --dash-primary: #2563eb;
+  --dash-border: #dce4ef;
+}
+
+body {
+  background: radial-gradient(circle at top right, #eaf1ff, var(--dash-bg) 45%);
+  color: var(--dash-text);
+}
+
+.dashboard {
+  max-width: 1180px;
+}
+
+h1 {
+  font-size: 32px;
+  letter-spacing: 0.3px;
+}
+
+.maker-card,
+.summary-table-wrap,
+.summary-detail {
+  border: 1px solid var(--dash-border);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  background: var(--dash-surface);
+}
+
+.maker-card:hover {
+  transform: translateY(-3px);
+}
+
+.dashboard-actions button,
+.status-count-btn,
+.detail-item-btn {
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.dashboard-actions button {
+  background: linear-gradient(180deg, #2d7dff 0%, #2563eb 100%);
+}
+
+.dashboard-actions button:hover {
+  background: linear-gradient(180deg, #256fe3 0%, #1f55c3 100%);
+}
+
+.summary-table th {
+  background: #eef4ff;
+  color: #173b6b;
+}
+
+.summary-table td {
+  border-color: #e4eaf2;
+}
+
+.dashboard-actions select {
+  border-radius: 10px;
+  border: 1px solid var(--dash-border);
+  padding: 6px 8px;
+}
