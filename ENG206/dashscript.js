@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+  window.Auth?.requireAuth?.();
+  const role = window.Auth?.getRole?.() || "";
+  const isUser = role === "user";
 
   const makers = [
     "HONDA",
@@ -15,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const importAllDataBtn = document.getElementById("importAllDataBtn");
   const importAllDataInput = document.getElementById("importAllDataInput");
   const goHomeBtn = document.getElementById("goHomeBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
 
   function getModelsKey(maker) {
     return `NPRA_MODELS_${maker}`;
@@ -116,6 +120,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return card;
   }
 
+
+  if (isUser) {
+    exportAllDataBtn?.setAttribute("hidden", "hidden");
+    importAllDataBtn?.setAttribute("hidden", "hidden");
+  }
+
   function renderDashboard() {
     makerGrid.innerHTML = "";
     makers.forEach(maker => makerGrid.appendChild(buildMakerCard(maker)));
@@ -181,6 +191,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   goHomeBtn?.addEventListener("click", () => {
     window.location.href = "dashboard.html";
+  });
+
+  logoutBtn?.addEventListener("click", () => {
+    window.Auth?.logout?.();
   });
 
   renderDashboard();

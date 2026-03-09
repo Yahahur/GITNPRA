@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+  window.Auth?.requireAuth?.();
+  const role = window.Auth?.getRole?.() || "admin";
+  const isUserMode = role === "user";
 
   /* ================= MAKER CONNECTION ================= */
   const selectedMaker = localStorage.getItem("selectedMaker") || "HONDA";
@@ -10,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const removeEventBtn = document.getElementById("removeEventBtn");
   const goPicSummaryBtn = document.getElementById("goPicSummaryBtn");
   const goHomeBtn = document.getElementById("goHomeBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
 
   function getModelsKey(maker) {
     return `NPRA_MODELS_${maker}`;
@@ -172,6 +176,20 @@ document.addEventListener("DOMContentLoaded", () => {
       return `<option value="${v}"${selectedAttr}>${v}</option>`;
     }).join("");
     return `<select class="include-select" data-include="${selected}">${options}</select>`;
+  }
+
+
+  function applyRolePermissions() {
+    if (!isUserMode) return;
+
+    [addModelBtn, removeModelBtn, addEventBtn, removeEventBtn, addRowBtn, deleteRowBtn, clearDataBtn, exportBtn, importBtn, enableBlockSelect].forEach(el => {
+      if (!el) return;
+      el.disabled = true;
+      el.style.display = "none";
+    });
+
+    if (importInput) importInput.disabled = true;
+    if (eventSelect) eventSelect.disabled = true;
   }
 
   function renderModelOptions() {
@@ -694,6 +712,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getEnabledStatusFilters() {
+    if (!statusFilterInputs.length) {
+      return new Set(["Open", "Closed", "Cancelled", "Rejected", "—"]);
+    }
     const checked = statusFilterInputs
       .filter(input => input.checked)
       .map(input => input.value);
@@ -726,8 +747,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function applyFilters() {
     const query = (searchInput.value || "").trim().toLowerCase();
-    const fromDate = parseDateOnly(dateFrom.value);
-    const toDate = parseDateOnly(dateTo.value);
+    const fromDate = parseDateOnly(dateFrom?.value || "");
+    const toDate = parseDateOnly(dateTo?.value || "");
     const enabledStatuses = getEnabledStatusFilters();
 
     getBlocks().forEach(blockRows => {
@@ -827,8 +848,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     searchInput.value = "";
-    dateFrom.value = "";
-    dateTo.value = "";
+    if (dateFrom) dateFrom.value = "";
+    if (dateTo) dateTo.value = "";
     statusFilterInputs.forEach(input => {
       input.checked = true;
     });
@@ -855,6 +876,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= ADD BLOCK ================= */
   addRowBtn.addEventListener("click", () => {
+    if (isUserMode) return;
     if (!STORAGE_KEY) return alert("Add/select a model first.");
     const selectedEvent = eventSelect?.value || "";
     if (!selectedEvent) return alert("Add/select an event first.");
@@ -977,6 +999,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= INLINE EDIT (TEXT ONLY, NO STATUS) ================= */
   document.addEventListener("dblclick", e => {
+    if (isUserMode) return;
     const td = e.target.closest("td");
 
     if (
@@ -1073,6 +1096,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("dblclick", e => {
     const td = e.target.closest(".date-cell");
     if (!td || td.querySelector("input")) return;
+    if (isUserMode && !(td.classList.contains("target-date") || td.classList.contains("recovery-date"))) return;
 
     const input = document.createElement("input");
     input.type = "date";
@@ -1111,6 +1135,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= STATUS CHANGE ================= */
   document.addEventListener("change", e => {
     if (e.target.classList.contains("status-select")) {
+      if (isUserMode) return;
       const allowed = ["Open", "Closed", "Close", "Cancelled", "Rejected", "—"];
       e.target.value = normalizeStatus(e.target.value);
       if (!allowed.includes(e.target.value)) e.target.value = "Open";
@@ -1125,6 +1150,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (e.target.classList.contains("pic-select")) {
+      if (isUserMode) return;
       if (!PIC_OPTIONS.includes(e.target.value)) {
         e.target.value = "—";
       }
@@ -1134,12 +1160,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (e.target.classList.contains("event-select")) {
+      if (isUserMode) return;
       e.target.dataset.event = e.target.value;
       saveTable();
       applyFilters();
     }
 
     if (e.target.classList.contains("include-select")) {
+      if (isUserMode) return;
       e.target.value = normalizeInclude(e.target.value);
       if (!INCLUDE_OPTIONS.includes(e.target.value)) e.target.value = "For Include";
       e.target.dataset.include = e.target.value;
@@ -1149,16 +1177,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ================= SEARCH / DATE FILTER ================= */
-  searchBtn.addEventListener("click", applyFilters);
-  resetBtn.addEventListener("click", () => {
+  searchBtn?.addEventListener("click", applyFilters);
+  resetBtn?.addEventListener("click", () => {
     searchInput.value = "";
     applyFilters();
   });
 
-  dateSearchBtn.addEventListener("click", applyFilters);
-  dateResetBtn.addEventListener("click", () => {
-    dateFrom.value = "";
-    dateTo.value = "";
+  dateSearchBtn?.addEventListener("click", applyFilters);
+  dateResetBtn?.addEventListener("click", () => {
+    if (dateFrom) dateFrom.value = "";
+    if (dateTo) dateTo.value = "";
     applyFilters();
   });
 
@@ -1181,7 +1209,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ================= DELETE BLOCK ================= */
-  deleteRowBtn.addEventListener("click", () => {
+  deleteRowBtn?.addEventListener("click", () => {
+    if (isUserMode) return;
     if (!selectedBlock) return alert("Enable block select, then click any row in the block first.");
     if (!confirm("Delete this block?")) return;
 
@@ -1200,6 +1229,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= EXPORT / IMPORT ================= */
   exportBtn.onclick = () => {
+    if (isUserMode) return;
     if (!STORAGE_KEY) return alert("Add/select a model first.");
     const payload = {
       maker: selectedMaker,
@@ -1214,6 +1244,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   importBtn.onclick = () => {
+    if (isUserMode) return;
     if (!STORAGE_KEY) return alert("Add/select a model first.");
     importInput.click();
   };
@@ -1252,6 +1283,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= CLEAR ================= */
   clearDataBtn.onclick = () => {
+    if (isUserMode) return;
     if (confirm(`Clear saved data for ${selectedMaker} (${currentModel})?`)) {
       localStorage.removeItem(STORAGE_KEY);
       mainTableBody.innerHTML = "";
@@ -1262,6 +1294,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= MODEL CONTROLS ================= */
   renderModelOptions();
   renderEventOptions();
+  applyRolePermissions();
 
   modelSelect?.addEventListener("change", () => {
     switchModel(modelSelect.value);
@@ -1273,6 +1306,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   addModelBtn?.addEventListener("click", () => {
+    if (isUserMode) return;
     const next = prompt(`Enter new model name for ${selectedMaker}:`);
     if (!next) return;
 
@@ -1290,6 +1324,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   removeModelBtn?.addEventListener("click", () => {
+    if (isUserMode) return;
     if (!currentModel) return alert("No model selected.");
     if (!confirm(`Remove model ${currentModel} from ${selectedMaker}?`)) return;
 
@@ -1304,6 +1339,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   addEventBtn?.addEventListener("click", () => {
+    if (isUserMode) return;
     const next = prompt(`Enter new event name for ${selectedMaker}:`);
     if (!next) return;
 
@@ -1324,6 +1360,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   removeEventBtn?.addEventListener("click", () => {
+    if (isUserMode) return;
     const currentEvent = eventSelect?.value || "";
     if (!currentEvent) return alert("No event selected.");
     if (!confirm(`Remove event ${currentEvent} from ${selectedMaker}?`)) return;
@@ -1347,6 +1384,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   goHomeBtn?.addEventListener("click", () => {
     window.location.href = "dashboard.html";
+  });
+
+  logoutBtn?.addEventListener("click", () => {
+    window.Auth?.logout?.();
   });
 
   /* ================= INITIAL LOAD ================= */

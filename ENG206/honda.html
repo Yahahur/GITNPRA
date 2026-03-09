@@ -26,6 +26,7 @@
       <button id="removeEventBtn">🗑 Remove Event</button>
       <button id="goPicSummaryBtn">📊 PIC Summary</button>
       <button id="goHomeBtn">🏠 Go Back to Homepage</button>
+      <button id="logoutBtn">🔒 Logout</button>
     </div>
 
     <!-- Add Row Button -->
@@ -42,26 +43,6 @@
   <input type="file" id="importData" style="display:none">
    </div>
 
-    </div>
-
-    <!-- Date Filter -->
-    <div style="margin: 10px 0;">
-      <label>From: <input type="date" id="dateFrom"></label>
-      <label>To: <input type="date" id="dateTo"></label>
-      <button id="dateSearchBtn">Filter by Date</button>
-      <button id="dateResetBtn">Reset</button>
-    </div>
-
-
-    <!-- Status Filter -->
-    <div style="margin: 10px 0;" class="status-filter-controls">
-      <strong>Status Filter:</strong>
-      <label><input type="checkbox" class="statusFilter" value="Open" checked> Open</label>
-      <label><input type="checkbox" class="statusFilter" value="Closed" checked> Closed</label>
-      <label><input type="checkbox" class="statusFilter" value="Cancelled" checked> Cancelled</label>
-      <label><input type="checkbox" class="statusFilter" value="Rejected" checked> Rejected</label>
-      <button id="statusFilterAllBtn">All</button>
-      <button id="statusFilterResetBtn">Reset</button>
     </div>
 
     <!-- Table -->
@@ -105,6 +86,7 @@
 
   </div>
 
+  <script src="auth.js"></script>
   <script src="script.js"></script>
 
 </body>

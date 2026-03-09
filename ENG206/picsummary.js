@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+  window.Auth?.requireAuth?.();
   const makers = ["HONDA", "SUZUKI", "MAZDA", "SUBARU", "DAIHATSU", "TOYOTA", "NISSAN"];
   const STATUS_KEYS = ["Open", "Closed", "Cancelled", "Rejected"];
   const SUMMARY_TARGET_KEY = "NPRA_SUMMARY_TARGET";
@@ -7,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const backBtn = document.getElementById("backToDashboard");
   const goHomeBtn = document.getElementById("goHomeBtn");
   const makerFilter = document.getElementById("makerFilter");
+  const logoutBtn = document.getElementById("logoutBtn");
   const modelFilter = document.getElementById("modelFilter");
   const eventFilter = document.getElementById("eventFilter");
   const statusDetailPanel = document.getElementById("statusDetailPanel");
@@ -329,6 +331,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   goHomeBtn?.addEventListener("click", () => {
     window.location.href = "dashboard.html";
+  });
+
+  logoutBtn?.addEventListener("click", () => {
+    window.Auth?.logout?.();
   });
 
   makerFilter?.addEventListener("change", () => {
