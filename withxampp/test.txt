@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Failure Analysis Table</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<table>
+    <tr>
+        <th class="w-item">ITEM No.</th>
+        <th class="w-date">NPRA DATE</th>
+        <th class="w-line">LINE / EVENT NAME</th>
+        <th class="w-process">PROCESS</th>
+        <th class="w-product">PRODUCT</th>
+        <th class="w-failure">POTENTIAL FAILURE MODE</th>
+        <th class="w-cause">POTENTIAL CAUSE OF FAILURE</th>
+        <th colspan="2" class="w-counter">COUNTERMEASURE</th>
+        <th class="w-pic">PIC</th>
+        <th class="w-target">TARGET DATE</th>
+        <th class="w-status">STATUS</th>
+        <th class="w-recovery">RECOVERY DATE</th>
+    </tr>
+
+    <tr>
+        <td rowspan="4"></td>
+        <td rowspan="4"></td>
+        <td rowspan="4"></td>
+        <td rowspan="4"></td>
+        <td rowspan="4"></td>
+        <td rowspan="4"></td>
+        <td rowspan="4"></td>
+
+        <td rowspan="2" class="vertical-text">OCCURRENCE</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+
+    <tr>
+        <td rowspan="2" class="vertical-text">OUTFLOW</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        
+    </tr>
+
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+</table>
+
+<script src="script.js"></script>
+</body>
+</html>

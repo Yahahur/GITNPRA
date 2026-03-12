@@ -1,0 +1,23 @@
+# Example Apache VirtualHost for XAMPP (Windows path shown)
+# Put this in: apache/conf/extra/httpd-vhosts.conf
+# and include it from httpd.conf if not already included.
+
+<VirtualHost *:80>
+    ServerName mixesched.company.local
+    DocumentRoot "C:/xampp/htdocs/Mixsched"
+
+    <Directory "C:/xampp/htdocs/Mixsched">
+        AllowOverride All
+
+        # Restrict access to company network only.
+        # Replace with your real network ranges.
+        Require ip 127.0.0.1 ::1
+        Require ip 10.0.0.0/8
+        Require ip 172.16.0.0/12
+        Require ip 192.168.0.0/16
+        # Require ip 192.168.50.0/24
+    </Directory>
+
+    ErrorLog "logs/mixsched-error.log"
+    CustomLog "logs/mixsched-access.log" common
+</VirtualHost>

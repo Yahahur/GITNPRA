@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PIC Summary by Model</title>
+  <link rel="stylesheet" href="dashUI.css" />
+</head>
+<body>
+  <div class="dashboard">
+    <h1>PIC Status Summary by Model</h1>
+
+    <div class="dashboard-actions">
+      <button id="backToDashboard">← Back to Dashboard</button>
+      <button id="goHomeBtn">🏠 Go Back to Homepage</button>
+      <button id="logoutBtn">🔒 Logout</button>
+      <label>Maker:
+        <select id="makerFilter"></select>
+      </label>
+      <label>Model:
+        <select id="modelFilter"></select>
+      </label>
+      <label>Event:
+        <select id="eventFilter"></select>
+      </label>
+    </div>
+
+    <div id="picDueNotice" class="due-notice" hidden></div>
+
+    <div class="summary-table-wrap">
+      <table class="summary-table" id="picSummaryTable">
+        <thead>
+          <tr>
+            <th>EVENT</th>
+            <th>PIC</th>
+            <th>OPEN</th>
+            <th>CLOSED</th>
+            <th>CANCELLED</th>
+            <th>REJECTED</th>
+            <th>TOTAL</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="summary-detail" id="statusDetailPanel" hidden>
+      <h2 id="statusDetailTitle">Details</h2>
+      <ul id="statusDetailList"></ul>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="picsummary.js"></script>
+</body>
+</html>
