@@ -11,6 +11,15 @@
   <div class="wrapper">
     <h1>NPRA MASTER SCHEDULE</h1>
 
+
+    <!-- Model Selection -->
+    <div style="margin: 10px 0;" class="model-controls">
+      <label><strong>Model:</strong>
+        <select id="modelSelect"></select>
+      </label>
+      <button id="addModelBtn">+ Add Model</button>
+    </div>
+
     <!-- Add Row Button -->
     <button id="addRowBtn">➕ Add ITEMS</button>
 
@@ -33,6 +42,18 @@
       <label>To: <input type="date" id="dateTo"></label>
       <button id="dateSearchBtn">Filter by Date</button>
       <button id="dateResetBtn">Reset</button>
+    </div>
+
+
+    <!-- Status Filter -->
+    <div style="margin: 10px 0;" class="status-filter-controls">
+      <strong>Status Filter:</strong>
+      <label><input type="checkbox" class="statusFilter" value="Open" checked> Open</label>
+      <label><input type="checkbox" class="statusFilter" value="Close" checked> Close</label>
+      <label><input type="checkbox" class="statusFilter" value="Cancelled" checked> Cancelled</label>
+      <label><input type="checkbox" class="statusFilter" value="Rejected" checked> Rejected</label>
+      <button id="statusFilterAllBtn">All</button>
+      <button id="statusFilterResetBtn">Reset</button>
     </div>
 
     <!-- Table -->
@@ -61,6 +82,9 @@
 
     <!-- Bottom Buttons -->
     <div class="block-controls">
+      <label class="select-mode-toggle">
+        <input type="checkbox" id="enableBlockSelect"> Enable block select
+      </label>
       <button id="deleteRowBtn">Delete this Row</button>
       <button id="clearDataBtn">Clear Saved Data</button>
     </div>
