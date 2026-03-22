@@ -35,6 +35,18 @@
       <button id="dateResetBtn">Reset</button>
     </div>
 
+
+    <!-- Status Filter -->
+    <div style="margin: 10px 0;" class="status-filter-controls">
+      <strong>Status Filter:</strong>
+      <label><input type="checkbox" class="statusFilter" value="Open" checked> Open</label>
+      <label><input type="checkbox" class="statusFilter" value="Close" checked> Close</label>
+      <label><input type="checkbox" class="statusFilter" value="Cancelled" checked> Cancelled</label>
+      <label><input type="checkbox" class="statusFilter" value="Rejected" checked> Rejected</label>
+      <button id="statusFilterAllBtn">All</button>
+      <button id="statusFilterResetBtn">Reset</button>
+    </div>
+
     <!-- Table -->
     <table id="mainTable">
       <thead>
@@ -50,6 +62,7 @@
           <th class="w-pic">PIC</th>
           <th class="w-target">TARGET DATE</th>
           <th class="w-status">STATUS</th>
+          <th class="w-inclusion">FOR INCLUSION</th>
           <th class="w-recovery">RECOVERY DATE</th>
         </tr>
 
@@ -61,6 +74,9 @@
 
     <!-- Bottom Buttons -->
     <div class="block-controls">
+      <label class="select-mode-toggle">
+        <input type="checkbox" id="enableBlockSelect"> Enable block select
+      </label>
       <button id="deleteRowBtn">Delete this Row</button>
       <button id="clearDataBtn">Clear Saved Data</button>
     </div>

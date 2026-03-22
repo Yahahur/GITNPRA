@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const addRowBtn = document.getElementById("addRowBtn");
   const deleteRowBtn = document.getElementById("deleteRowBtn");
   const clearDataBtn = document.getElementById("clearDataBtn");
+  const enableBlockSelect = document.getElementById("enableBlockSelect");
 
   const searchInput = document.getElementById("searchInput");
   const searchBtn = document.getElementById("searchBtn");
@@ -28,15 +29,101 @@ document.addEventListener("DOMContentLoaded", () => {
   const importBtn = document.getElementById("importBtn");
   const importInput = document.getElementById("importData");
 
+  const statusFilterInputs = Array.from(document.querySelectorAll(".statusFilter"));
+  const statusFilterAllBtn = document.getElementById("statusFilterAllBtn");
+  const statusFilterResetBtn = document.getElementById("statusFilterResetBtn");
+
   let selectedBlock = null;
 
-  /* ================= DATE FORMAT ================= */
+  const PIC_OPTIONS = [
+    "FMEA","APQP","MPPD","PREPARATION","EVENT","DOCUMENTATION",
+    "ME FINAL PROCESS 2", "CQA", "QAE", "QC FINAL", "fabrication",
+    "eed final assy", "Final ect", "md", "pd pc event", "mm and eq", "—"
+  ];
+
+  const INCLUSION_OPTIONS = ["For Inclusion", "Not for Inclusion", "Pending", "—"];
+
+  function createPicSelectHTML(selected = "—") {
+    const options = PIC_OPTIONS.map(pic => {
+      const selectedAttr = pic === selected ? " selected" : "";
+      return `<option value="${pic}"${selectedAttr}>${pic}</option>`;
+    }).join("");
+    return `<select class="pic-select" data-pic="${selected}">${options}</select>`;
+  }
+
+  function createInclusionSelectHTML(selected = "—") {
+    const options = INCLUSION_OPTIONS.map(option => {
+      const selectedAttr = option === selected ? " selected" : "";
+      return `<option value="${option}"${selectedAttr}>${option}</option>`;
+    }).join("");
+    return `<select class="inclusion-select" data-inclusion="${selected}">${options}</select>`;
+  }
+
+  /* ================= UTIL ================= */
   function formatDate(value) {
     if (!value) return "—";
-    const m = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    const m = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
     const d = new Date(value);
     if (isNaN(d)) return "—";
-    return `${m[d.getMonth()]}-${String(d.getDate()).padStart(2,"0")}-${d.getFullYear()}`;
+    return `${m[d.getMonth()]}-${String(d.getDate()).padStart(2, "0")}-${d.getFullYear()}`;
+  }
+
+  function parseDateOnly(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    if (isNaN(d)) return null;
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  function getBlocks() {
+    const rows = Array.from(mainTableBody.rows);
+    const blocks = [];
+    for (let i = 0; i < rows.length; i += 4) {
+      blocks.push(rows.slice(i, i + 4).filter(Boolean));
+    }
+    return blocks;
+  }
+
+  function getStatusSelectsInBlock(blockRows) {
+    return blockRows.flatMap(row => Array.from(row.querySelectorAll(".status-select")));
+  }
+
+  function getDateCellsByType(row) {
+    const dateCells = Array.from(row.querySelectorAll(".date-cell"));
+    if (dateCells.length === 0) return { npra: null, target: null, recovery: null };
+
+    // First row in each block has NPRA + TARGET + RECOVERY
+    if (dateCells.length >= 3) {
+      return { npra: dateCells[0], target: dateCells[1], recovery: dateCells[2] };
+    }
+
+    // Other rows have TARGET + RECOVERY
+    if (dateCells.length >= 2) {
+      return { npra: null, target: dateCells[0], recovery: dateCells[1] };
+    }
+
+    return { npra: null, target: dateCells[0], recovery: null };
+  }
+
+  function tagDateCellTypes() {
+    getBlocks().forEach(blockRows => {
+      blockRows.forEach(row => {
+        const { npra, target, recovery } = getDateCellsByType(row);
+        if (npra) {
+          npra.classList.add("npra-date");
+          npra.classList.remove("target-date", "recovery-date");
+        }
+        if (target) {
+          target.classList.add("target-date");
+          target.classList.remove("npra-date");
+        }
+        if (recovery) {
+          recovery.classList.add("recovery-date");
+          recovery.classList.remove("npra-date");
+        }
+      });
+    });
   }
 
   /* ================= STATUS COLOR ================= */
@@ -52,26 +139,107 @@ document.addEventListener("DOMContentLoaded", () => {
       "";
   }
 
+  function hydrateStatusSelect(select) {
+    const savedStatus = select.dataset.status;
+    if (savedStatus) {
+      select.value = savedStatus;
+    }
+    select.dataset.status = select.value;
+  }
+
+  function updateStatusReasonUI(select) {
+    const td = select.closest("td");
+    if (!td) return;
+
+    const reason = (select.dataset.reason || "").trim();
+    if (["Cancelled", "Rejected"].includes(select.value) && reason) {
+      td.title = `${select.value} reason: ${reason}`;
+    } else if (["Cancelled", "Rejected"].includes(select.value)) {
+      td.title = `${select.value} reason: (not provided)`;
+    } else {
+      td.title = "";
+      select.dataset.reason = "";
+    }
+  }
+
+  function askReasonIfNeeded(select) {
+    if (!["Cancelled", "Rejected"].includes(select.value)) {
+      select.dataset.reason = "";
+      return;
+    }
+
+    const current = select.dataset.reason || "";
+    const entered = prompt(`Enter reason for ${select.value}:`, current);
+    if (entered === null) {
+      select.value = "Open";
+      select.dataset.reason = "";
+    } else {
+      select.dataset.reason = entered.trim();
+    }
+  }
+
+  function isResolvedStatus(status) {
+    return ["Close", "Cancelled", "Rejected"].includes(status);
+  }
+
+  function getStatusDateColor(status) {
+    if (status === "Close") return "#d4edda";
+    if (status === "Cancelled") return "#fff3cd";
+    if (status === "Rejected") return "#f5c6cb";
+    return "";
+  }
+
+  function applyDateColorByStatus(select) {
+    const row = select.closest("tr");
+    if (!row) return;
+
+    const { target, recovery } = getDateCellsByType(row);
+    const status = select.value;
+
+    [target, recovery].forEach(td => {
+      if (!td) return;
+      if (isResolvedStatus(status)) {
+        td.style.backgroundColor = getStatusDateColor(status);
+        td.title = `${status}`;
+      }
+    });
+  }
+
   /* ================= DATE WARNING ================= */
   function updateDateWarnings() {
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
 
-    document.querySelectorAll(".date-cell").forEach(td => {
+    // Reset only target/recovery columns (NPRA must not turn red)
+    document.querySelectorAll(".target-date, .recovery-date").forEach(td => {
+      td.style.backgroundColor = "";
+      td.title = "";
+    });
+
+    // Apply warning colors for due/overdue target/recovery cells
+    document.querySelectorAll(".target-date, .recovery-date").forEach(td => {
+      const row = td.closest("tr");
+      const statusSelect = row ? row.querySelector(".status-select") : null;
+      if (statusSelect && isResolvedStatus(statusSelect.value)) {
+        return;
+      }
+
       const raw = td.dataset.raw;
-      if (!raw) return td.style.backgroundColor = "";
+      if (!raw) return;
 
-      const target = new Date(raw);
-      target.setHours(0,0,0,0);
+      const target = parseDateOnly(raw);
+      if (!target) return;
+
       const diff = Math.ceil((target - today) / 86400000);
-
       if (diff <= 5) {
         td.style.backgroundColor = "#f8d7da";
         td.title = diff >= 0 ? `Due in ${diff} day(s)` : "Overdue";
-      } else {
-        td.style.backgroundColor = "";
-        td.title = "";
       }
+    });
+
+    // Resolved rows override warning with status-specific colors.
+    document.querySelectorAll(".status-select").forEach(select => {
+      applyDateColorByStatus(select);
     });
   }
 
@@ -79,22 +247,98 @@ document.addEventListener("DOMContentLoaded", () => {
   function renumberItems() {
     let count = 1;
     for (let i = 0; i < mainTableBody.rows.length; i += 4) {
-      mainTableBody.rows[i].cells[0].innerText = count++;
+      if (mainTableBody.rows[i]) {
+        mainTableBody.rows[i].cells[0].innerText = count++;
+      }
     }
   }
 
   /* ================= SAVE / LOAD ================= */
   function syncSelectValues() {
-    // 🔑 ensure selected value is saved in HTML
     document.querySelectorAll(".status-select").forEach(select => {
+      select.dataset.status = select.value;
+      select.dataset.reason = select.dataset.reason || "";
+      [...select.options].forEach(opt => {
+        opt.selected = opt.value === select.value;
+      });
+    });
+
+    document.querySelectorAll(".pic-select").forEach(select => {
+      select.dataset.pic = select.value;
+      [...select.options].forEach(opt => {
+        opt.selected = opt.value === select.value;
+      });
+    });
+
+    document.querySelectorAll(".inclusion-select").forEach(select => {
+      select.dataset.inclusion = select.value;
       [...select.options].forEach(opt => {
         opt.selected = opt.value === select.value;
       });
     });
   }
 
+  function normalizeAndHydratePicCells() {
+    document.querySelectorAll(".status-cell").forEach(statusCell => {
+      let picCell = statusCell.previousElementSibling;
+      while (picCell && picCell.classList.contains("date-cell")) {
+        picCell = picCell.previousElementSibling;
+      }
+      if (!picCell) return;
+
+      picCell.classList.add("pic-cell");
+
+      if (!picCell.querySelector(".pic-select")) {
+        const raw = (picCell.textContent || "").trim();
+        const selected = PIC_OPTIONS.includes(raw) ? raw : "—";
+        picCell.innerHTML = createPicSelectHTML(selected);
+      }
+
+      const select = picCell.querySelector(".pic-select");
+      if (!select) return;
+
+      const saved = select.dataset.pic;
+      if (saved && PIC_OPTIONS.includes(saved)) {
+        select.value = saved;
+      }
+      if (!PIC_OPTIONS.includes(select.value)) {
+        select.value = "—";
+      }
+      select.dataset.pic = select.value;
+    });
+  }
+
+  function normalizeAndHydrateInclusionCells() {
+    document.querySelectorAll(".status-cell").forEach(statusCell => {
+      let inclusionCell = statusCell.nextElementSibling;
+      if (!inclusionCell || !inclusionCell.classList.contains("inclusion-cell")) {
+        inclusionCell = document.createElement("td");
+        inclusionCell.className = "inclusion-cell";
+        inclusionCell.innerHTML = createInclusionSelectHTML("—");
+        statusCell.insertAdjacentElement("afterend", inclusionCell);
+      }
+
+      const select = inclusionCell.querySelector(".inclusion-select");
+      if (!select) {
+        const raw = (inclusionCell.textContent || "").trim();
+        const selected = INCLUSION_OPTIONS.includes(raw) ? raw : "—";
+        inclusionCell.innerHTML = createInclusionSelectHTML(selected);
+      }
+
+      const inclusionSelect = inclusionCell.querySelector(".inclusion-select");
+      const saved = inclusionSelect.dataset.inclusion;
+      if (saved && INCLUSION_OPTIONS.includes(saved)) {
+        inclusionSelect.value = saved;
+      }
+      if (!INCLUSION_OPTIONS.includes(inclusionSelect.value)) {
+        inclusionSelect.value = "—";
+      }
+      inclusionSelect.dataset.inclusion = inclusionSelect.value;
+    });
+  }
+
   function saveTable() {
-    syncSelectValues(); // update HTML <option selected> before saving
+    syncSelectValues();
     localStorage.setItem(STORAGE_KEY, mainTableBody.innerHTML);
   }
 
@@ -103,9 +347,92 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!data) return;
     mainTableBody.innerHTML = data;
 
-    document.querySelectorAll(".status-select").forEach(applyStatusLogic);
+    tagDateCellTypes();
+    normalizeAndHydratePicCells();
+    normalizeAndHydrateInclusionCells();
+
+    document.querySelectorAll(".status-select").forEach(select => {
+      hydrateStatusSelect(select);
+      applyStatusLogic(select);
+      updateStatusReasonUI(select);
+    });
+
     updateDateWarnings();
     renumberItems();
+  }
+
+  /* ================= FILTERS ================= */
+  function blockText(blockRows) {
+    return blockRows.map(row => row.textContent.toLowerCase()).join(" ");
+  }
+
+  function blockInDateRange(blockRows, fromDate, toDate) {
+    const allDateCells = blockRows.flatMap(row => Array.from(row.querySelectorAll(".date-cell")));
+    const raws = allDateCells.map(td => td.dataset.raw).filter(Boolean);
+
+    if (raws.length === 0) return false;
+
+    return raws.some(raw => {
+      const d = parseDateOnly(raw);
+      if (!d) return false;
+      if (fromDate && d < fromDate) return false;
+      if (toDate && d > toDate) return false;
+      return true;
+    });
+  }
+
+  function getEnabledStatusFilters() {
+    const checked = statusFilterInputs
+      .filter(input => input.checked)
+      .map(input => input.value);
+    return new Set(checked);
+  }
+
+  function blockMatchesStatus(blockRows, enabledStatuses) {
+    if (enabledStatuses.size === 0) return false;
+
+    const statuses = blockRows.flatMap(row =>
+      Array.from(row.querySelectorAll(".status-select")).map(select => select.value)
+    );
+
+    if (statuses.length === 0) return true;
+    return statuses.some(status => enabledStatuses.has(status));
+  }
+
+  function applyFilters() {
+    const query = (searchInput.value || "").trim().toLowerCase();
+    const fromDate = parseDateOnly(dateFrom.value);
+    const toDate = parseDateOnly(dateTo.value);
+    const enabledStatuses = getEnabledStatusFilters();
+
+    getBlocks().forEach(blockRows => {
+      const matchesSearch = !query || blockText(blockRows).includes(query);
+      const matchesDate = (!fromDate && !toDate) || blockInDateRange(blockRows, fromDate, toDate);
+      const matchesStatus = blockMatchesStatus(blockRows, enabledStatuses);
+      const visible = matchesSearch && matchesDate && matchesStatus;
+
+      blockRows.forEach(row => {
+        row.style.display = visible ? "" : "none";
+      });
+    });
+  }
+
+  /* ================= BLOCK SELECT ================= */
+  function clearSelectedBlockUI() {
+    document.querySelectorAll("tr.selected-block").forEach(tr => tr.classList.remove("selected-block"));
+  }
+
+  function setSelectedBlockFromRow(row) {
+    const rows = Array.from(mainTableBody.rows);
+    const index = rows.indexOf(row);
+    if (index === -1) return;
+
+    const start = Math.floor(index / 4) * 4;
+    const blockRows = rows.slice(start, start + 4);
+
+    clearSelectedBlockUI();
+    blockRows.forEach(r => r.classList.add("selected-block"));
+    selectedBlock = blockRows[0] || null;
   }
 
   /* ================= ADD BLOCK ================= */
@@ -117,40 +444,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const statusHTML = `
       <select class="status-select">
-        <option>Open</option>
-        <option>Close</option>
-        <option>Cancelled</option>
-        <option>Rejected</option>
-        <option>—</option>
+        <option value="Open">Open</option>
+        <option value="Close">Close</option>
+        <option value="Cancelled">Cancelled</option>
+        <option value="Rejected">Rejected</option>
+        <option value="—">—</option>
       </select>`;
+    const picHTML = createPicSelectHTML();
+    const inclusionHTML = createInclusionSelectHTML();
 
     for (let i = 0; i < 4; i++) {
       const tr = document.createElement("tr");
       tr.innerHTML = i === 0 ? `
         <td rowspan="4"></td>
-        <td rowspan="4" class="date-cell" data-raw="">—</td>
+        <td rowspan="4" class="date-cell npra-date" data-raw="">—</td>
         <td rowspan="4">${line}</td>
         <td rowspan="4">${process}</td>
         <td rowspan="4">${product}</td>
         <td rowspan="4">—</td>
         <td rowspan="4">—</td>
         <td rowspan="2" class="vertical-text">OCCURRENCE</td>
-        <td>—</td><td>—</td>
-        <td class="date-cell" data-raw="">—</td>
+        <td>—</td><td class="pic-cell">${picHTML}</td>
+        <td class="date-cell target-date" data-raw="">—</td>
         <td class="status-cell">${statusHTML}</td>
-        <td class="date-cell" data-raw="">—</td>
+        <td class="inclusion-cell">${inclusionHTML}</td>
+        <td class="date-cell recovery-date" data-raw="">—</td>
       ` : `
         ${i === 2 ? `<td rowspan="2" class="vertical-text">OUTFLOW</td>` : ""}
-        <td>—</td><td>—</td>
-        <td class="date-cell" data-raw="">—</td>
+        <td>—</td><td class="pic-cell">${picHTML}</td>
+        <td class="date-cell target-date" data-raw="">—</td>
         <td class="status-cell">${statusHTML}</td>
-        <td class="date-cell" data-raw="">—</td>
+        <td class="inclusion-cell">${inclusionHTML}</td>
+        <td class="date-cell recovery-date" data-raw="">—</td>
       `;
       mainTableBody.appendChild(tr);
     }
 
     renumberItems();
+    updateDateWarnings();
     saveTable();
+    applyFilters();
   });
 
   /* ================= INLINE EDIT (TEXT ONLY, NO STATUS) ================= */
@@ -160,7 +493,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (
       !td ||
       td.classList.contains("vertical-text") ||
-      td.classList.contains("status-cell") || // 🔒 protect STATUS column
+      td.classList.contains("status-cell") ||
+      td.classList.contains("pic-cell") ||
+      td.classList.contains("inclusion-cell") ||
       td.querySelector("input") ||
       td.querySelector("select")
     ) return;
@@ -174,6 +509,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ta.onblur = () => {
       td.textContent = ta.value.trim() || "—";
       saveTable();
+      applyFilters();
     };
   });
 
@@ -194,22 +530,96 @@ document.addEventListener("DOMContentLoaded", () => {
       td.textContent = formatDate(input.value);
       updateDateWarnings();
       saveTable();
+      applyFilters();
     };
   });
+
+  /* ================= BLOCK CLICK SELECT ================= */
+  mainTableBody.addEventListener("click", e => {
+    if (!enableBlockSelect || !enableBlockSelect.checked) return;
+    if (e.target.closest("input, textarea, select, button")) return;
+    const row = e.target.closest("tr");
+    if (!row) return;
+    setSelectedBlockFromRow(row);
+  });
+
+  if (enableBlockSelect) {
+    enableBlockSelect.addEventListener("change", () => {
+      if (!enableBlockSelect.checked) {
+        clearSelectedBlockUI();
+        selectedBlock = null;
+      }
+    });
+  }
 
   /* ================= STATUS CHANGE ================= */
   document.addEventListener("change", e => {
     if (e.target.classList.contains("status-select")) {
-      const allowed = ["Open","Close","Cancelled","Rejected","—"];
-      if (!allowed.includes(e.target.value)) e.target.value = "Open"; // safety
+      const allowed = ["Open", "Close", "Cancelled", "Rejected", "—"];
+      if (!allowed.includes(e.target.value)) e.target.value = "Open";
+
+      askReasonIfNeeded(e.target);
+      e.target.dataset.status = e.target.value;
       applyStatusLogic(e.target);
+      updateStatusReasonUI(e.target);
+      updateDateWarnings();
+      saveTable();
+      applyFilters();
+    }
+
+    if (e.target.classList.contains("pic-select")) {
+      if (!PIC_OPTIONS.includes(e.target.value)) {
+        e.target.value = "—";
+      }
+      e.target.dataset.pic = e.target.value;
+      saveTable();
+      applyFilters();
+    }
+
+    if (e.target.classList.contains("inclusion-select")) {
+      if (!INCLUSION_OPTIONS.includes(e.target.value)) {
+        e.target.value = "—";
+      }
+      e.target.dataset.inclusion = e.target.value;
       saveTable();
     }
   });
 
+  /* ================= SEARCH / DATE FILTER ================= */
+  searchBtn.addEventListener("click", applyFilters);
+  resetBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    applyFilters();
+  });
+
+  dateSearchBtn.addEventListener("click", applyFilters);
+  dateResetBtn.addEventListener("click", () => {
+    dateFrom.value = "";
+    dateTo.value = "";
+    applyFilters();
+  });
+
+  statusFilterInputs.forEach(input => {
+    input.addEventListener("change", applyFilters);
+  });
+
+  statusFilterAllBtn?.addEventListener("click", () => {
+    statusFilterInputs.forEach(input => {
+      input.checked = true;
+    });
+    applyFilters();
+  });
+
+  statusFilterResetBtn?.addEventListener("click", () => {
+    statusFilterInputs.forEach(input => {
+      input.checked = true;
+    });
+    applyFilters();
+  });
+
   /* ================= DELETE BLOCK ================= */
   deleteRowBtn.addEventListener("click", () => {
-    if (!selectedBlock) return alert("Double-click a block first.");
+    if (!selectedBlock) return alert("Enable block select, then click any row in the block first.");
     if (!confirm("Delete this block?")) return;
 
     let r = selectedBlock;
@@ -218,18 +628,25 @@ document.addEventListener("DOMContentLoaded", () => {
       r.remove();
       r = next;
     }
+
     selectedBlock = null;
     renumberItems();
     saveTable();
+    applyFilters();
   });
 
   /* ================= EXPORT / IMPORT ================= */
   exportBtn.onclick = () => {
-    const blob = new Blob([localStorage.getItem(STORAGE_KEY)], { type: "application/json" });
+    const payload = {
+      maker: selectedMaker,
+      tableHtml: localStorage.getItem(STORAGE_KEY) || ""
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `${selectedMaker}_NPRA.json`;
     a.click();
+    URL.revokeObjectURL(a.href);
   };
 
   importBtn.onclick = () => importInput.click();
@@ -237,12 +654,33 @@ document.addEventListener("DOMContentLoaded", () => {
   importInput.onchange = e => {
     const file = e.target.files[0];
     if (!file) return;
+
     const r = new FileReader();
     r.onload = () => {
-      localStorage.setItem(STORAGE_KEY, r.result);
-      loadTable();
+      try {
+        const raw = String(r.result || "");
+        let html = raw;
+
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === "string") {
+          html = parsed;
+        } else if (parsed && typeof parsed.tableHtml === "string") {
+          html = parsed.tableHtml;
+        }
+
+        localStorage.setItem(STORAGE_KEY, html);
+        loadTable();
+        applyFilters();
+        alert("Import successful.");
+      } catch {
+        localStorage.setItem(STORAGE_KEY, String(r.result || ""));
+        loadTable();
+        applyFilters();
+        alert("Import successful.");
+      }
     };
     r.readAsText(file);
+    e.target.value = "";
   };
 
   /* ================= CLEAR ================= */
@@ -250,10 +688,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (confirm("Clear all saved data for " + selectedMaker + "?")) {
       localStorage.removeItem(STORAGE_KEY);
       mainTableBody.innerHTML = "";
+      selectedBlock = null;
     }
   };
 
   /* ================= INITIAL LOAD ================= */
   loadTable();
+  applyFilters();
 
 });
