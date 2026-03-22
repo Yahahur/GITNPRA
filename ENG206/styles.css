@@ -608,3 +608,251 @@ div[style*="margin: 10px 0;"] {
     background: transparent;
   }
 }
+
+
+.select-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #333;
+}
+
+.select-mode-toggle input {
+  cursor: pointer;
+}
+
+.pic-select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 13px;
+}
+
+.status-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.status-filter-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#statusFilterAllBtn,
+#statusFilterResetBtn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.model-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#modelSelect,
+#addModelBtn {
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.event-select,
+.include-select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 13px;
+}
+
+
+.summary-target-highlight {
+  animation: summaryTargetPulse 1s ease-in-out infinite;
+}
+
+.summary-target-highlight td {
+  background-color: #d4edff !important;
+  outline: 2px solid #2196f3;
+}
+
+@keyframes summaryTargetPulse {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.08); }
+  100% { filter: brightness(1); }
+}
+
+/* Keep only Model Selection and Add Row controls floating while scrolling */
+.model-controls {
+  position: sticky;
+  top: 8px;
+  z-index: 960;
+  background: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+#addRowBtn {
+  position: sticky;
+  top: 68px;
+  z-index: 955;
+}
+
+.floating-modal button {
+  position: static;
+  box-shadow: none;
+}
+
+
+.countermeasure-inline-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.countermeasure-inline-editor textarea {
+  width: 100%;
+  min-height: 54px;
+}
+
+.countermeasure-inline-editor select {
+  width: 100%;
+}
+
+
+.countermeasure-note {
+  white-space: pre-wrap;
+}
+
+.countermeasure-process {
+  margin-top: 4px;
+  font-weight: 600;
+  color: #1f4e79;
+}
+
+/* ===== Modern UI refresh ===== */
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --text: #0f172a;
+  --muted: #475569;
+  --primary: #2563eb;
+  --primary-2: #1d4ed8;
+  --border: #dbe2ea;
+  --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+}
+
+body {
+  background: radial-gradient(circle at top right, #eef4ff, var(--bg) 40%);
+  color: var(--text);
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+.wrapper {
+  max-width: 98%;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+h1 {
+  font-size: 28px;
+  letter-spacing: 0.2px;
+  margin-bottom: 14px;
+}
+
+button,
+.controls button,
+#addRowBtn,
+#searchBtn,
+#resetBtn,
+#dateSearchBtn,
+#dateResetBtn,
+#deleteRowBtn,
+#clearDataBtn,
+#addModelBtn,
+#removeModelBtn,
+#addEventBtn,
+#removeEventBtn,
+#goPicSummaryBtn,
+#goHomeBtn,
+#statusFilterAllBtn,
+#statusFilterResetBtn {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.18s ease;
+  box-shadow: 0 3px 10px rgba(2, 6, 23, 0.12);
+}
+
+button:hover,
+.controls button:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.model-controls,
+.status-filter-controls,
+div[style*="margin: 10px 0;"] {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+table {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+th {
+  background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+}
+
+td, th {
+  border-color: #e5e9f0;
+}
+
+.countermeasure-process {
+  color: var(--primary-2);
+  background: #eff6ff;
+  border-radius: 8px;
+  padding: 4px 8px;
+  display: inline-block;
+}
+
+/* Stronger table outlines for better visibility */
+#mainTable {
+  border: 2px solid #1e293b !important;
+  box-shadow: inset 0 0 0 1px #1e293b;
+}
+
+#mainTable th,
+#mainTable td {
+  border: 1.5px solid #334155 !important;
+}
+
+#mainTable th {
+  background: #e2e8f0 !important;
+}

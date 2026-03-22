@@ -9,7 +9,25 @@
 
 <body>
   <div class="wrapper">
-    <h1>NPRA MASTER SCHEDULE</h1>
+    <h1>Failure Mode and Effects Analysis Form</h1>
+
+
+    <!-- Model Selection -->
+    <div style="margin: 10px 0;" class="model-controls">
+      <label><strong>Model:</strong>
+        <select id="modelSelect"></select>
+      </label>
+      <button id="addModelBtn">+ Add Model</button>
+      <button id="removeModelBtn">🗑 Remove Model</button>
+      <label><strong>Event:</strong>
+        <select id="eventSelect"></select>
+      </label>
+      <button id="addEventBtn">+ Add Event</button>
+      <button id="removeEventBtn">🗑 Remove Event</button>
+      <button id="goPicSummaryBtn">📊 PIC Summary</button>
+      <button id="goHomeBtn">🏠 Go Back to Homepage</button>
+      <button id="logoutBtn">🔒 Logout</button>
+    </div>
 
     <!-- Add Row Button -->
     <button id="addRowBtn">➕ Add ITEMS</button>
@@ -27,14 +45,6 @@
 
     </div>
 
-    <!-- Date Filter -->
-    <div style="margin: 10px 0;">
-      <label>From: <input type="date" id="dateFrom"></label>
-      <label>To: <input type="date" id="dateTo"></label>
-      <button id="dateSearchBtn">Filter by Date</button>
-      <button id="dateResetBtn">Reset</button>
-    </div>
-
     <!-- Table -->
     <table id="mainTable">
       <thead>
@@ -48,6 +58,7 @@
           <th class="w-cause">POTENTIAL CAUSE OF FAILURE</th>
           <th colspan="2" class="w-counter">COUNTERMEASURE</th>
           <th class="w-pic">PIC</th>
+          <th class="w-include">INCLUDE</th>
           <th class="w-target">TARGET DATE</th>
           <th class="w-status">STATUS</th>
           <th class="w-recovery">RECOVERY DATE</th>
@@ -61,6 +72,9 @@
 
     <!-- Bottom Buttons -->
     <div class="block-controls">
+      <label class="select-mode-toggle">
+        <input type="checkbox" id="enableBlockSelect"> Enable block select
+      </label>
       <button id="deleteRowBtn">Delete this Row</button>
       <button id="clearDataBtn">Clear Saved Data</button>
     </div>
@@ -72,6 +86,7 @@
 
   </div>
 
+  <script src="auth.js"></script>
   <script src="script.js"></script>
 
 </body>

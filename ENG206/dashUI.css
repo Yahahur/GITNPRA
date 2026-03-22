@@ -44,6 +44,8 @@ h1 {
     font-size: 18px;
     font-weight: bold;
     color: #222;
+    text-align: center;
+    margin-bottom: 8px;
 }
 
 .open-count {
@@ -73,3 +75,194 @@ h1 {
 .status-row.close strong { color: #28a745; }
 .status-row.cancelled strong { color: #f0ad4e; }
 .status-row.rejected strong { color: #c82333; }
+
+.dashboard-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.dashboard-actions button {
+  border: none;
+  background: #0077cc;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.dashboard-actions button:hover {
+  background: #005fa3;
+}
+
+.summary-card {
+  border: 2px dashed #0077cc;
+}
+
+.summary-note {
+  text-align: center;
+  color: #444;
+  font-size: 13px;
+  margin: 8px 0 14px;
+}
+
+.summary-table-wrap {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.summary-table th,
+.summary-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.summary-table th {
+  background: #f1f5f9;
+}
+
+.model-name {
+  text-align: center;
+  font-size: 13px;
+  color: #4b5563;
+  margin-bottom: 8px;
+}
+
+.status-count-btn {
+  border: 1px solid #0b66c3;
+  background: #e8f2ff;
+  color: #0b66c3;
+  border-radius: 4px;
+  padding: 4px 8px;
+  min-width: 40px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.status-count-btn:hover {
+  background: #d8eaff;
+}
+
+.summary-detail {
+  margin-top: 16px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 14px;
+}
+
+.summary-detail h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.summary-detail ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.summary-detail li {
+  margin: 4px 0;
+}
+
+.detail-item-btn {
+  border: none;
+  background: transparent;
+  color: #0b66c3;
+  cursor: pointer;
+  text-align: left;
+  padding: 2px 0;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+.detail-item-btn:hover {
+  color: #084a8c;
+}
+
+/* ===== Modern dashboard refresh ===== */
+:root {
+  --dash-bg: #f5f8ff;
+  --dash-surface: #ffffff;
+  --dash-text: #0f172a;
+  --dash-muted: #475569;
+  --dash-primary: #2563eb;
+  --dash-border: #dce4ef;
+}
+
+body {
+  background: radial-gradient(circle at top right, #eaf1ff, var(--dash-bg) 45%);
+  color: var(--dash-text);
+}
+
+.dashboard {
+  max-width: 1180px;
+}
+
+h1 {
+  font-size: 32px;
+  letter-spacing: 0.3px;
+}
+
+.maker-card,
+.summary-table-wrap,
+.summary-detail {
+  border: 1px solid var(--dash-border);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  background: var(--dash-surface);
+}
+
+.maker-card:hover {
+  transform: translateY(-3px);
+}
+
+.dashboard-actions button,
+.status-count-btn,
+.detail-item-btn {
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.dashboard-actions button {
+  background: linear-gradient(180deg, #2d7dff 0%, #2563eb 100%);
+}
+
+.dashboard-actions button:hover {
+  background: linear-gradient(180deg, #256fe3 0%, #1f55c3 100%);
+}
+
+.summary-table th {
+  background: #eef4ff;
+  color: #173b6b;
+}
+
+.summary-table td {
+  border-color: #e4eaf2;
+}
+
+.dashboard-actions select {
+  border-radius: 10px;
+  border: 1px solid var(--dash-border);
+  padding: 6px 8px;
+}
+
+/* Stronger summary table outlines for better visibility */
+.summary-table {
+  border: 2px solid #1e293b;
+}
+
+.summary-table th,
+.summary-table td {
+  border: 1.5px solid #334155;
+}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <link rel="stylesheet" href="dashUI.css" />
+  <style>
+    .login-card { max-width: 420px; margin: 80px auto; background: #fff; padding: 24px; border-radius: 14px; box-shadow: 0 12px 24px rgba(15,23,42,.12);} 
+    .login-card input, .login-card select { width:100%; margin:8px 0 12px; padding:10px; }
+    .login-card button { width:100%; padding:10px; }
+    .login-hint { font-size: 12px; color:#475569; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <h2>Login</h2>
+    <label>Access</label>
+    <select id="roleSelect">
+      <option value="admin">Admin</option>
+      <option value="user">User</option>
+    </select>
+    <label>Username</label>
+    <input id="username" type="text" />
+    <label>Password</label>
+    <input id="password" type="password" />
+    <button id="loginBtn">Login</button>
+    <p class="login-hint">Admin: admin/admin123 • User: user/user123</p>
+  </div>
+  <script src="auth.js"></script>
+  <script>
+    window.Auth.requireAuth();
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      const role = document.getElementById('roleSelect').value;
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if (!window.Auth.login(username, password, role)) {
+        alert('Invalid credentials');
+        return;
+      }
+      window.location.href = 'dashboard.html';
+    });
+  </script>
+</body>
+</html>
